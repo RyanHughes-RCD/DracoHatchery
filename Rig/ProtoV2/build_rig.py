@@ -4,12 +4,13 @@ The B&W layers are drawn on the same 150x150 canvas, in the same places, as
 the first prototype (Rig/Prototype), but they carry no socket holes, so the
 pivots below are that rig's sockets.
 
-For each layer this writes two sprites to build/:
+For each layer of each art version (see ART) this writes two sprites to
+build/<version>/:
   layer<N>_shape.png  the part's silhouette (where the layer is opaque)
   layer<N>_ink.png    darkness as alpha: white clear, black solid, greys between
 The viewer fills the shape with a flat colour and lays the ink over it.
 
-Usage: python3 build_rig.py
+Usage: python3 refine.py && python3 build_rig.py
 """
 import json
 import os
@@ -20,6 +21,8 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 BUILD = os.path.join(HERE, "build")
+# Art versions: the uploaded layers and the cleaned-up copies from refine.py.
+ART = {"original": REPO, "refined": os.path.join(HERE, "refined")}
 sys.path.insert(0, os.path.dirname(HERE))
 from make_alpha import to_alpha_mask  # noqa: E402
 
@@ -51,20 +54,24 @@ def pivot_for(name, im):
 
 
 def main():
-    os.makedirs(BUILD, exist_ok=True)
     parts = []
     for name, layer, parent, pivot, far in LAYOUT:
-        src = Image.open(os.path.join(REPO, f"pixil-layer-{layer}.png")).convert("RGBA")
-        shape = Image.new("RGBA", src.size, (255, 255, 255, 0))
-        shape.putalpha(src.getchannel("A").point(lambda v: 255 if v else 0))
-        shape.save(os.path.join(BUILD, f"layer{layer}_shape.png"))
-        to_alpha_mask(src).save(os.path.join(BUILD, f"layer{layer}_ink.png"))
+        file = f"pixil-layer-{layer}.png"
+        for art, folder in ART.items():
+            src = Image.open(os.path.join(folder, file)).convert("RGBA")
+            os.makedirs(os.path.join(BUILD, art), exist_ok=True)
+            shape = Image.new("RGBA", src.size, (255, 255, 255, 0))
+            shape.putalpha(src.getchannel("A").point(lambda v: 255 if v else 0))
+            shape.save(os.path.join(BUILD, art, f"layer{layer}_shape.png"))
+            to_alpha_mask(src).save(os.path.join(BUILD, art, f"layer{layer}_ink.png"))
+        # Pivots come from the original art so both versions turn on the same points.
+        src = Image.open(os.path.join(ART["original"], file)).convert("RGBA")
         pivot = [round(v, 2) for v in (pivot or pivot_for(name, src))]
-        parts.append({"name": name, "layer": f"pixil-layer-{layer}.png", "parent": parent,
+        parts.append({"name": name, "layer": file, "parent": parent,
                       "pivot": pivot, "far": far,
-                      "shape": f"build/layer{layer}_shape.png", "ink": f"build/layer{layer}_ink.png"})
+                      "shape": f"layer{layer}_shape.png", "ink": f"layer{layer}_ink.png"})
         print(name, f"layer {layer}", pivot)
-    rig = {"canvas": [150, 150], "parts": parts}
+    rig = {"canvas": [150, 150], "art": {k: f"build/{k}/" for k in ART}, "parts": parts}
     with open(os.path.join(HERE, "rig.json"), "w") as f:
         json.dump(rig, f, indent=2)
     # Same data as a script so the viewer also works when opened from disk.

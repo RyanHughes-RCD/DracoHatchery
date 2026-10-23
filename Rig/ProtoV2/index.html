@@ -66,6 +66,15 @@
   .colours label { justify-content: space-between; color: var(--ink); background: var(--bg); border-radius: 6px; padding: 6px 6px 6px 10px; }
   .colours label.all { grid-column: 1 / -1; justify-content: flex-start; font-weight: 600; }
   input[type="color"] { width: 40px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: none; cursor: pointer; }
+  .compare { display: grid; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+  .compare h2 { margin: 0; font: 600 0.75rem var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .compare-row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  .compare-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .compare-pair figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+  .compare-pair figcaption { font-size: 0.8rem; color: var(--muted); }
+  .compare-pair canvas { background: var(--sky); border-radius: 4px; image-rendering: pixelated; }
+  select { font: 0.9rem var(--font-body); padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); }
+  .count { font-family: var(--font-data); font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
   .tag { font-size: 0.75rem; padding: 1px 6px; border-radius: 4px; background: var(--accent); color: var(--accent-ink); }
   .note { font-size: 0.85rem; color: var(--muted); margin: 0; max-width: 70ch; }
 </style>
@@ -86,6 +95,10 @@
       <button id="anim-fly" data-anim="fly" aria-pressed="false">Fly</button>
       <button id="anim-roar" data-anim="roar" aria-pressed="false">Roar</button>
     </div>
+    <div class="seg" role="group" aria-label="Art version">
+      <button id="art-original" data-art="original" aria-pressed="false">Original</button>
+      <button id="art-refined" data-art="refined" aria-pressed="true">Refined</button>
+    </div>
     <button class="btn" id="pause">Pause</button>
     <label for="speed">Speed <input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"><span class="speed-val" id="speed-val">1.00×</span></label>
     <label for="bones"><input id="bones" type="checkbox"> Show pivots</label>
@@ -96,6 +109,20 @@
     <label class="all" for="col-all"><input id="col-all" type="color" value="#4f9d6b"> Whole body (everything but the eye)</label>
     <div id="part-colours" style="display: contents"></div>
     <button class="btn" id="reset-colours" type="button">Reset colours</button>
+  </section>
+
+  <section class="compare" aria-label="Compare art versions">
+    <h2>Refinement pass</h2>
+    <div class="compare-row">
+      <label for="cmp-layer">Layer <select id="cmp-layer"></select></label>
+      <label for="cmp-mark"><input id="cmp-mark" type="checkbox" checked> Mark changed pixels</label>
+      <span class="count" id="cmp-count"></span>
+    </div>
+    <div class="compare-pair">
+      <figure><canvas id="cmp-original" aria-label="Original layer, enlarged"></canvas><figcaption>Original</figcaption></figure>
+      <figure><canvas id="cmp-refined" aria-label="Refined layer, enlarged"></canvas><figcaption>Refined</figcaption></figure>
+    </div>
+    <p class="note">Outline corners that doubled up into an L are trimmed so lines step diagonally at an even 1px weight, lone specks of the wrong shade are filled in, and the stray near-black grey is merged into the outline shade. Shapes, shading and pivots are unchanged.</p>
   </section>
 
   <div class="table-wrap">
@@ -139,11 +166,15 @@
     if (images[src]) return;
     const img = new Image();
     pending++;
-    img.onload = () => { if (--pending === 0) { retint(); requestAnimationFrame(frame); } };
+    img.onload = () => { if (--pending === 0) { retint(); drawCompare(); requestAnimationFrame(frame); } };
     img.src = src;
     images[src] = img;
   }
-  for (const p of rig.parts) { parts[p.name] = p; loadImage(p.shape); loadImage(p.ink); }
+  for (const p of rig.parts) {
+    parts[p.name] = p;
+    for (const dir of Object.values(rig.art)) { loadImage(dir + p.shape); loadImage(dir + p.ink); }
+  }
+  let art = "refined";
 
   // Nearest-neighbour enlargement so each art pixel becomes a crisp square.
   function enlarge(src) {
@@ -162,12 +193,12 @@
       const c = document.createElement("canvas");
       c.width = SIZE[0]; c.height = SIZE[1];
       const g = c.getContext("2d");
-      g.drawImage(images[p.shape], 0, 0);
+      g.drawImage(images[rig.art[art] + p.shape], 0, 0);
       g.globalCompositeOperation = "source-in";
       g.fillStyle = colours[groupOf(p.name)];
       g.fillRect(0, 0, c.width, c.height);
       g.globalCompositeOperation = "source-over";
-      g.drawImage(images[p.ink], 0, 0);
+      g.drawImage(images[rig.art[art] + p.ink], 0, 0);
       if (p.far) {
         g.globalCompositeOperation = "source-atop";
         g.fillStyle = "rgba(0, 0, 0, 0.3)";
@@ -353,6 +384,71 @@
     all.value = colours.torso;
     retint(); saveColours();
   });
+
+  // Art version switch
+  document.querySelectorAll("[data-art]").forEach(btn => btn.addEventListener("click", () => {
+    art = btn.dataset.art;
+    document.querySelectorAll("[data-art]").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    retint();
+  }));
+
+  // Before/after view of one layer: white silhouette with the ink over it
+  // rebuilds the B&W art exactly.
+  const cmpLayer = document.getElementById("cmp-layer"), cmpMark = document.getElementById("cmp-mark");
+  const layers = [...new Map(rig.parts.map(p => [p.layer, p])).values()].sort((a, b) => a.layer.localeCompare(b.layer));
+  for (const p of layers) {
+    const o = document.createElement("option");
+    o.value = p.layer; o.textContent = `${p.layer.replace(".png", "")} (${p.name.replace("_", " ")})`;
+    cmpLayer.appendChild(o);
+  }
+  cmpLayer.value = "pixil-layer-7.png";
+  function layerArt(p, version) {
+    const c = document.createElement("canvas");
+    c.width = SIZE[0]; c.height = SIZE[1];
+    const g = c.getContext("2d", { willReadFrequently: true });
+    g.drawImage(images[rig.art[version] + p.shape], 0, 0);
+    g.drawImage(images[rig.art[version] + p.ink], 0, 0);
+    return c;
+  }
+  function boundsOf(canvases) {
+    let x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+    for (const c of canvases) {
+      const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+      for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+        if (d[(y * c.width + x) * 4 + 3]) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+      }
+    }
+    return { x: x0 - 1, y: y0 - 1, w: x1 - x0 + 3, h: y1 - y0 + 3 };
+  }
+  function drawCompare() {
+    const p = layers.find(l => l.layer === cmpLayer.value);
+    const src = { original: layerArt(p, "original"), refined: layerArt(p, "refined") };
+    const b = boundsOf(Object.values(src));
+    const Z = 10;
+    const data = {};
+    for (const [k, c] of Object.entries(src)) data[k] = c.getContext("2d").getImageData(b.x, b.y, b.w, b.h).data;
+    let changed = 0;
+    for (const k of ["original", "refined"]) {
+      const out = document.getElementById("cmp-" + k);
+      out.width = b.w * Z; out.height = b.h * Z;
+      const g = out.getContext("2d");
+      g.imageSmoothingEnabled = false;
+      g.drawImage(src[k], b.x, b.y, b.w, b.h, 0, 0, out.width, out.height);
+      g.strokeStyle = "#ff2fc8"; g.lineWidth = 2;
+      let n = 0;
+      for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
+        const i = (y * b.w + x) * 4;
+        if (data.original[i] !== data.refined[i] || data.original[i + 3] !== data.refined[i + 3]) {
+          n++;
+          if (cmpMark.checked && k === "refined") g.strokeRect(x * Z + 1, y * Z + 1, Z - 2, Z - 2);
+        }
+      }
+      changed = n;
+    }
+    document.getElementById("cmp-count").textContent = `${changed} pixel${changed === 1 ? "" : "s"} changed`;
+  }
+  cmpLayer.addEventListener("change", drawCompare);
+  cmpMark.addEventListener("change", drawCompare);
 
   // Controls
   document.querySelectorAll("[data-anim]").forEach(btn => btn.addEventListener("click", () => {

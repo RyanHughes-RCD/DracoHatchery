@@ -3,6 +3,10 @@
     150,
     150
   ],
+  "art": {
+    "original": "build/original/",
+    "refined": "build/refined/"
+  },
   "parts": [
     {
       "name": "torso",
@@ -13,8 +17,8 @@
         80.32
       ],
       "far": false,
-      "shape": "build/layer0_shape.png",
-      "ink": "build/layer0_ink.png"
+      "shape": "layer0_shape.png",
+      "ink": "layer0_ink.png"
     },
     {
       "name": "far_wing",
@@ -25,8 +29,8 @@
         73.9
       ],
       "far": true,
-      "shape": "build/layer7_shape.png",
-      "ink": "build/layer7_ink.png"
+      "shape": "layer7_shape.png",
+      "ink": "layer7_ink.png"
     },
     {
       "name": "wing",
@@ -37,8 +41,8 @@
         73.9
       ],
       "far": false,
-      "shape": "build/layer7_shape.png",
-      "ink": "build/layer7_ink.png"
+      "shape": "layer7_shape.png",
+      "ink": "layer7_ink.png"
     },
     {
       "name": "back_leg",
@@ -49,8 +53,8 @@
         81.5
       ],
       "far": false,
-      "shape": "build/layer3_shape.png",
-      "ink": "build/layer3_ink.png"
+      "shape": "layer3_shape.png",
+      "ink": "layer3_ink.png"
     },
     {
       "name": "tail",
@@ -61,8 +65,8 @@
         76.62
       ],
       "far": false,
-      "shape": "build/layer1_shape.png",
-      "ink": "build/layer1_ink.png"
+      "shape": "layer1_shape.png",
+      "ink": "layer1_ink.png"
     },
     {
       "name": "front_leg",
@@ -73,8 +77,8 @@
         90.0
       ],
       "far": false,
-      "shape": "build/layer2_shape.png",
-      "ink": "build/layer2_ink.png"
+      "shape": "layer2_shape.png",
+      "ink": "layer2_ink.png"
     },
     {
       "name": "head",
@@ -85,8 +89,8 @@
         69.0
       ],
       "far": false,
-      "shape": "build/layer4_shape.png",
-      "ink": "build/layer4_ink.png"
+      "shape": "layer4_shape.png",
+      "ink": "layer4_ink.png"
     },
     {
       "name": "jaw",
@@ -97,8 +101,8 @@
         70.5
       ],
       "far": false,
-      "shape": "build/layer5_shape.png",
-      "ink": "build/layer5_ink.png"
+      "shape": "layer5_shape.png",
+      "ink": "layer5_ink.png"
     },
     {
       "name": "eye",
@@ -109,8 +113,8 @@
         62.79
       ],
       "far": false,
-      "shape": "build/layer6_shape.png",
-      "ink": "build/layer6_ink.png"
+      "shape": "layer6_shape.png",
+      "ink": "layer6_ink.png"
     }
   ]
 }
