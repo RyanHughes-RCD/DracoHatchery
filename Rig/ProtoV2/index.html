@@ -61,10 +61,16 @@
   td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
   tr:last-child td { border-bottom: 0; }
   .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--line); }
-  .colours { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+  .colours { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
   .colours h2 { grid-column: 1 / -1; margin: 0; font: 600 0.75rem var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
   .colours label { justify-content: space-between; color: var(--ink); background: var(--bg); border-radius: 6px; padding: 6px 6px 6px 10px; }
   .colours label.all { grid-column: 1 / -1; justify-content: flex-start; font-weight: 600; }
+  .part-card { display: grid; gap: 6px; align-content: start; background: var(--bg); border-radius: 6px; padding: 8px 8px 8px 10px; }
+  .part-card h3 { margin: 0; font: 600 0.9rem var(--font-body); color: var(--ink); }
+  .colours .part-card label { background: none; padding: 0; gap: 6px; font-size: 0.85rem; color: var(--muted); }
+  .part-card .zone-ctl { display: inline-flex; gap: 6px; align-items: center; }
+  .auto-btn { font: 600 0.72rem var(--font-body); padding: 3px 7px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--muted); cursor: pointer; }
+  .auto-btn[aria-pressed="true"] { color: var(--ink); border-color: var(--bone); }
   input[type="color"] { width: 40px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: none; cursor: pointer; }
   .compare { display: grid; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
   .compare h2 { margin: 0; font: 600 0.75rem var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
@@ -106,7 +112,7 @@
 
   <section class="colours" aria-label="Colours">
     <h2>Colours</h2>
-    <label class="all" for="col-all"><input id="col-all" type="color" value="#4f9d6b"> Whole body (everything but the eye)</label>
+    <label class="all" for="col-all"><input id="col-all" type="color" value="#4f9d6b"> Whole body (main colour of everything but the eye)</label>
     <div id="part-colours" style="display: contents"></div>
     <button class="btn" id="reset-colours" type="button">Reset colours</button>
   </section>
@@ -155,6 +161,9 @@
   ];
   const DEFAULTS = Object.fromEntries(GROUPS.map(([k, , c]) => [k, c]));
   const groupOf = name => name === "far_wing" ? "wing" : name;
+  // Shaded areas that can take their own colour. Unset means "follow the main colour".
+  const ZONE_LABELS = { mid: "Light shade", dark: "Dark shade" };
+  const zoneKey = (group, zone) => `${group}.${zone}`;
   let colours = { ...DEFAULTS };
   try { Object.assign(colours, JSON.parse(localStorage.getItem("protoV2.colours") || "{}")); } catch (e) {}
   const saveColours = () => { try { localStorage.setItem("protoV2.colours", JSON.stringify(colours)); } catch (e) {} };
@@ -172,7 +181,10 @@
   }
   for (const p of rig.parts) {
     parts[p.name] = p;
-    for (const dir of Object.values(rig.art)) { loadImage(dir + p.shape); loadImage(dir + p.ink); }
+    for (const dir of Object.values(rig.art)) {
+      loadImage(dir + p.shape); loadImage(dir + p.ink);
+      for (const z of p.zones) loadImage(dir + p.shape.replace("_shape", "_" + z));
+    }
   }
   let art = "refined";
 
@@ -186,19 +198,40 @@
     return big;
   }
 
-  // Flat colour inside the silhouette, far side shaded, ink laid over the top.
+  function filled(mask, colour) {
+    const c = document.createElement("canvas");
+    c.width = SIZE[0]; c.height = SIZE[1];
+    const g = c.getContext("2d");
+    g.drawImage(mask, 0, 0);
+    g.globalCompositeOperation = "source-in";
+    g.fillStyle = colour;
+    g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = "source-over";
+    return c;
+  }
+
+  // Flat colour inside the silhouette, then any shade zone with its own colour
+  // painted over it, far side shaded, ink laid over the top. A coloured zone has
+  // its shading lifted off the ink so the chosen colour shows as picked.
   const tinted = {};
   function retint() {
     for (const p of rig.parts) {
-      const c = document.createElement("canvas");
-      c.width = SIZE[0]; c.height = SIZE[1];
+      const dir = rig.art[art], group = groupOf(p.name);
+      const c = filled(images[dir + p.shape], colours[group]);
       const g = c.getContext("2d");
-      g.drawImage(images[rig.art[art] + p.shape], 0, 0);
-      g.globalCompositeOperation = "source-in";
-      g.fillStyle = colours[groupOf(p.name)];
-      g.fillRect(0, 0, c.width, c.height);
-      g.globalCompositeOperation = "source-over";
-      g.drawImage(images[rig.art[art] + p.ink], 0, 0);
+      const ink = document.createElement("canvas");
+      ink.width = SIZE[0]; ink.height = SIZE[1];
+      const ig = ink.getContext("2d");
+      ig.drawImage(images[dir + p.ink], 0, 0);
+      ig.globalCompositeOperation = "destination-out";
+      for (const z of p.zones) {
+        const own = colours[zoneKey(group, z)];
+        if (!own) continue;
+        const mask = images[dir + p.shape.replace("_shape", "_" + z)];
+        g.drawImage(filled(mask, own), 0, 0);
+        ig.drawImage(mask, 0, 0);
+      }
+      g.drawImage(ink, 0, 0);
       if (p.far) {
         g.globalCompositeOperation = "source-atop";
         g.fillStyle = "rgba(0, 0, 0, 0.3)";
@@ -359,30 +392,54 @@
     requestAnimationFrame(frame);
   }
 
-  // Colour pickers
+  // Colour pickers: one card per part, with a main colour and one picker per
+  // shade zone the part has. A zone on "Auto" follows the main colour.
   const holder = document.getElementById("part-colours");
-  const inputs = {};
-  for (const [key, label] of GROUPS) {
-    const l = document.createElement("label");
-    l.htmlFor = "col-" + key;
-    l.innerHTML = `${label} <input id="col-${key}" type="color">`;
-    holder.appendChild(l);
-    const input = l.querySelector("input");
-    input.value = colours[key];
-    input.addEventListener("input", () => { colours[key] = input.value; retint(); saveColours(); });
-    inputs[key] = input;
+  const inputs = {}, autoBtns = {};
+  function syncZone(group, zone) {
+    const key = zoneKey(group, zone);
+    inputs[key].value = colours[key] || colours[group];
+    autoBtns[key].setAttribute("aria-pressed", String(!colours[key]));
+  }
+  function syncAll() {
+    for (const [group] of GROUPS) {
+      inputs[group].value = colours[group];
+      for (const z of Object.keys(ZONE_LABELS)) if (inputs[zoneKey(group, z)]) syncZone(group, z);
+    }
+    all.value = colours.torso;
+  }
+  for (const [group, label] of GROUPS) {
+    const zones = Object.keys(ZONE_LABELS).filter(z => rig.parts.some(p => groupOf(p.name) === group && p.zones.includes(z)));
+    const card = document.createElement("div");
+    card.className = "part-card";
+    card.innerHTML = `<h3>${label}</h3><label for="col-${group}">Main <input id="col-${group}" type="color"></label>` +
+      zones.map(z => `<label for="col-${group}-${z}">${ZONE_LABELS[z]} <span class="zone-ctl">` +
+        `<button type="button" class="auto-btn" id="auto-${group}-${z}" title="Follow the main colour">Auto</button>` +
+        `<input id="col-${group}-${z}" type="color"></span></label>`).join("");
+    holder.appendChild(card);
+    inputs[group] = card.querySelector(`#col-${group}`);
+    inputs[group].addEventListener("input", () => {
+      colours[group] = inputs[group].value;
+      for (const z of zones) syncZone(group, z);
+      retint(); saveColours();
+    });
+    for (const z of zones) {
+      const key = zoneKey(group, z);
+      inputs[key] = card.querySelector(`#col-${group}-${z}`);
+      autoBtns[key] = card.querySelector(`#auto-${group}-${z}`);
+      inputs[key].addEventListener("input", () => { colours[key] = inputs[key].value; syncZone(group, z); retint(); saveColours(); });
+      autoBtns[key].addEventListener("click", () => { delete colours[key]; syncZone(group, z); retint(); saveColours(); });
+    }
   }
   const all = document.getElementById("col-all");
-  all.value = colours.torso;
+  syncAll();
   all.addEventListener("input", () => {
-    for (const [key] of GROUPS) if (key !== "eye") { colours[key] = all.value; inputs[key].value = all.value; }
-    retint(); saveColours();
+    for (const [group] of GROUPS) if (group !== "eye") colours[group] = all.value;
+    syncAll(); retint(); saveColours();
   });
   document.getElementById("reset-colours").addEventListener("click", () => {
     colours = { ...DEFAULTS };
-    for (const [key] of GROUPS) inputs[key].value = colours[key];
-    all.value = colours.torso;
-    retint(); saveColours();
+    syncAll(); retint(); saveColours();
   });
 
   // Art version switch

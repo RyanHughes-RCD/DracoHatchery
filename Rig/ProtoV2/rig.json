@@ -17,6 +17,9 @@
         80.32
       ],
       "far": false,
+      "zones": [
+        "mid"
+      ],
       "shape": "layer0_shape.png",
       "ink": "layer0_ink.png"
     },
@@ -29,6 +32,9 @@
         73.9
       ],
       "far": true,
+      "zones": [
+        "dark"
+      ],
       "shape": "layer7_shape.png",
       "ink": "layer7_ink.png"
     },
@@ -41,6 +47,9 @@
         73.9
       ],
       "far": false,
+      "zones": [
+        "dark"
+      ],
       "shape": "layer7_shape.png",
       "ink": "layer7_ink.png"
     },
@@ -53,6 +62,9 @@
         81.5
       ],
       "far": false,
+      "zones": [
+        "mid"
+      ],
       "shape": "layer3_shape.png",
       "ink": "layer3_ink.png"
     },
@@ -65,6 +77,10 @@
         76.62
       ],
       "far": false,
+      "zones": [
+        "mid",
+        "dark"
+      ],
       "shape": "layer1_shape.png",
       "ink": "layer1_ink.png"
     },
@@ -77,6 +93,9 @@
         90.0
       ],
       "far": false,
+      "zones": [
+        "mid"
+      ],
       "shape": "layer2_shape.png",
       "ink": "layer2_ink.png"
     },
@@ -89,6 +108,9 @@
         69.0
       ],
       "far": false,
+      "zones": [
+        "mid"
+      ],
       "shape": "layer4_shape.png",
       "ink": "layer4_ink.png"
     },
@@ -101,6 +123,9 @@
         70.5
       ],
       "far": false,
+      "zones": [
+        "mid"
+      ],
       "shape": "layer5_shape.png",
       "ink": "layer5_ink.png"
     },
@@ -113,6 +138,7 @@
         62.79
       ],
       "far": false,
+      "zones": [],
       "shape": "layer6_shape.png",
       "ink": "layer6_ink.png"
     }
