@@ -97,6 +97,7 @@
       <button id="outline-none" data-outline="none" aria-pressed="false">None</button>
     </div>
     <label for="shading"><input id="shading" type="checkbox" checked> Shading</label>
+    <label for="speckle"><input id="speckle" type="checkbox"> Speckle</label>
     <label for="bones"><input id="bones" type="checkbox"> Show pivots</label>
   </div>
 
@@ -192,14 +193,44 @@
   // Main colour inside the silhouette, each mapped region painted in its own
   // colour, then the shading laid over everything (when switched on), then the
   // outlines: black, a darker version of the colour beneath them, or none.
-  let shading = true, outline = "black";
+  let shading = true, outline = "black", speckle = false;
+
+  // Speckle: a fixed scatter of slightly lighter and darker pixels laid over
+  // the colour fill, so any picked colour gets near-identical neighbours.
+  // Seeded, so it never changes between redraws, and drawn per part, so it
+  // moves with the part.
+  const SPECKLE = (() => {
+    const c = document.createElement("canvas");
+    c.width = SIZE[0]; c.height = SIZE[1];
+    const g = c.getContext("2d");
+    let seed = 20261023;
+    const rand = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+      const n = rand();
+      if (n < 0.14) g.fillStyle = "rgba(0, 0, 0, 0.10)";
+      else if (n < 0.22) g.fillStyle = "rgba(0, 0, 0, 0.18)";
+      else if (n < 0.34) g.fillStyle = "rgba(255, 255, 255, 0.10)";
+      else if (n < 0.40) g.fillStyle = "rgba(255, 255, 255, 0.18)";
+      else continue;
+      g.fillRect(x, y, 1, 1);
+    }
+    return c;
+  })();
   const tinted = {};
   function retint() {
     for (const p of rig.parts) {
       const group = groupOf(p.name);
-      const c = filled(images[p.shape], colours[group] || BODY);
+      // Parts with no main area (jaw, eye) base on their first region, so a
+      // tinted outline matches the colour next to it.
+      const base = p.main ? colours[group] : colours[key(group, p.regions[0])];
+      const c = filled(images[p.shape], base || BODY);
       const g = c.getContext("2d");
       for (const r of p.regions) g.drawImage(filled(images[p.masks[r]], colours[key(group, r)] || BODY), 0, 0);
+      if (speckle) {
+        g.globalCompositeOperation = "source-atop";
+        g.drawImage(SPECKLE, 0, 0);
+        g.globalCompositeOperation = "source-over";
+      }
       let tint = null;
       if (outline === "tinted") {
         // Copy the colours under the outline before any shading lands on them.
@@ -430,6 +461,7 @@
     document.querySelectorAll("[data-outline]").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
     retint();
   }));
+  document.getElementById("speckle").addEventListener("change", e => { speckle = e.target.checked; retint(); });
   document.getElementById("shading").addEventListener("change", e => { shading = e.target.checked; retint(); });
   document.getElementById("bones").addEventListener("change", e => { showBones = e.target.checked; });
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { paused = true; pauseBtn.textContent = "Play"; }
