@@ -10,7 +10,8 @@ colour painted over solid black shading (the eye's iris) is left unshaded,
 since a colour under solid black could never show.
 
 For each part this writes to build/: <name>_shape.png (silhouette),
-<name>_ink.png (shading as alpha) and <name>_c<N>.png per region it has.
+<name>_ink.png (shading as alpha), <name>_lines.png (just the outlines, for
+previewing without shading) and <name>_c<N>.png per region it has.
 
 Usage: python3 build_rig.py
 """
@@ -44,6 +45,7 @@ LAYOUT = [
 # Region hues in degrees; a saturated map pixel joins the nearest one.
 REGIONS = {"c2": 0, "c3": 220, "c4": 120}
 SOLID_BLACK = 18  # shading at or below this hides any colour under it
+OUTLINE = 39  # shading at or below this is outline, kept when shading is off
 
 
 def region_of(rgb):
@@ -93,9 +95,18 @@ def main():
                 if spx[x, y][0] <= SOLID_BLACK:
                     ipx[x, y] = (0, 0, 0, 0)
 
+        # Outlines only: the ink where it is outline-dark, nothing for the greys.
+        lines = ink.copy()
+        lpx = lines.load()
+        for y in range(h):
+            for x in range(w):
+                if lpx[x, y][3] and not (spx[x, y][3] and spx[x, y][0] <= OUTLINE):
+                    lpx[x, y] = (0, 0, 0, 0)
+
         base = f"layer{shade_layer}"
         shape.save(os.path.join(BUILD, f"{base}_shape.png"))
         ink.save(os.path.join(BUILD, f"{base}_ink.png"))
+        lines.save(os.path.join(BUILD, f"{base}_lines.png"))
         for region, mask in masks.items():
             mask.save(os.path.join(BUILD, f"{base}_{region}.png"))
         # Main only counts if it shows somewhere: a pixel outside every region
@@ -108,6 +119,7 @@ def main():
                       "parent": parent, "pivot": pivot, "far": far,
                       "main": has_main, "regions": [r for r in REGIONS if r in masks],
                       "shape": f"build/{base}_shape.png", "ink": f"build/{base}_ink.png",
+                      "lines": f"build/{base}_lines.png",
                       "masks": {r: f"build/{base}_{r}.png" for r in REGIONS if r in masks}})
         print(name, pivot, "regions:", parts[-1]["regions"], "" if parts[-1]["main"] else "(no main)")
     rig = {"canvas": [150, 150], "parts": parts}
