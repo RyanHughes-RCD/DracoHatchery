@@ -40,7 +40,7 @@
   h1 { font-family: var(--font-display); font-weight: 700; font-size: 2rem; margin: 0; line-height: 1.1; text-wrap: balance; }
   .sub { color: var(--muted); margin: 4px 0 0; max-width: 62ch; }
   .stage { background: var(--sky); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-  canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; image-rendering: crisp-edges; }
+  canvas { display: block; width: 100%; height: auto; }
   .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
   .seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
   .seg button, .btn {
@@ -71,7 +71,7 @@
     <p class="sub">Each limb's transparent hole is pinned to the matching coloured marker on the torso and rotates around it.</p>
   </header>
 
-  <div class="stage"><canvas id="stage" width="160" height="110" aria-label="Animated prototype dragon"></canvas></div>
+  <div class="stage"><canvas id="stage" width="1280" height="880" aria-label="Animated prototype dragon"></canvas></div>
 
   <div class="controls">
     <div class="seg" role="group" aria-label="Animation">
@@ -102,18 +102,33 @@
   const ctx = canvas.getContext("2d");
   // Crop of the 150x150 authoring canvas that the stage shows.
   const VIEW = { x: -5, y: 10, w: 160, h: 110 };
+  // Screen pixels per art pixel. Parts are enlarged with crisp square pixels,
+  // then rotated as whole images at this resolution.
+  const SCALE = 8;
   const GROUND_Y = 109;
+  const SIZE = rig.canvas;
   const DEG = Math.PI / 180;
+
+  // Nearest-neighbour enlargement so each art pixel becomes a crisp square.
+  function enlarge(src) {
+    const big = document.createElement("canvas");
+    big.width = SIZE[0] * SCALE; big.height = SIZE[1] * SCALE;
+    const g = big.getContext("2d");
+    g.imageSmoothingEnabled = false;
+    g.drawImage(src, 0, 0, big.width, big.height);
+    return big;
+  }
 
   const parts = {};
   const images = {};
+  const big = {};
   let pending = 0;
   for (const p of rig.parts) {
     parts[p.name] = p;
     if (!images[p.image]) {
       const img = new Image();
       pending++;
-      img.onload = () => { if (--pending === 0) requestAnimationFrame(frame); };
+      img.onload = () => { big[p.image] = enlarge(img); if (--pending === 0) requestAnimationFrame(frame); };
       img.src = p.image;
       images[p.image] = img;
     }
@@ -211,20 +226,20 @@
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingEnabled = false;
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
 
     // Ground with ticks that scroll while walking.
     const gy = GROUND_Y - VIEW.y;
     ctx.fillStyle = css.getPropertyValue("--ground");
-    ctx.fillRect(0, gy, canvas.width, canvas.height - gy);
+    ctx.fillRect(0, gy, VIEW.w, VIEW.h - gy);
     const scroll = anim === "walk" ? (clock * 22) % 12 : 0;
     ctx.globalAlpha = 0.35;
     ctx.fillStyle = css.getPropertyValue("--ink");
-    for (let x = -scroll; x < canvas.width; x += 12) ctx.fillRect(Math.round(x), gy + 3, 3, 1);
+    for (let x = -scroll; x < VIEW.w; x += 12) ctx.fillRect(x, gy + 3, 3, 1);
     ctx.globalAlpha = 1;
 
-    const view = new DOMMatrix().translateSelf(-VIEW.x, -VIEW.y);
-    const root = view.translate(0, Math.round((pose.root.dy || 0)));
+    const view = new DOMMatrix().scaleSelf(SCALE).translateSelf(-VIEW.x, -VIEW.y);
+    const root = view.translate(0, pose.root.dy || 0);
     const placed = {};
     const torso = drawPart("torso", pose, root, placed);
     const head = drawPart("head", pose, torso, placed);
@@ -234,13 +249,13 @@
     for (const p of rig.parts) {
       const m = placed[p.name].m;
       ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
-      ctx.drawImage(images[p.image], 0, 0);
+      ctx.drawImage(big[p.image], 0, 0, SIZE[0], SIZE[1]);
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     if (showBones) {
       const bone = css.getPropertyValue("--bone");
-      ctx.strokeStyle = bone; ctx.fillStyle = bone; ctx.lineWidth = 0.5;
+      ctx.strokeStyle = bone; ctx.fillStyle = bone; ctx.lineWidth = SCALE / 2;
       for (const p of rig.parts) {
         if (!p.parent) continue;
         const a = placed[p.parent].at, b = placed[p.name].at;
@@ -248,7 +263,7 @@
       }
       for (const p of rig.parts) {
         const q = placed[p.name].at;
-        ctx.fillRect(q.x - 1, q.y - 1, 2, 2);
+        ctx.fillRect(q.x - SCALE, q.y - SCALE, SCALE * 2, SCALE * 2);
       }
     }
     requestAnimationFrame(frame);
