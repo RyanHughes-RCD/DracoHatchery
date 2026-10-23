@@ -91,6 +91,11 @@
     </div>
     <button class="btn" id="pause">Pause</button>
     <label for="speed">Speed <input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"><span class="speed-val" id="speed-val">1.00×</span></label>
+    <div class="seg" role="group" aria-label="Outlines">
+      <button id="outline-black" data-outline="black" aria-pressed="true">Black outlines</button>
+      <button id="outline-tinted" data-outline="tinted" aria-pressed="false">Tinted</button>
+      <button id="outline-none" data-outline="none" aria-pressed="false">None</button>
+    </div>
     <label for="shading"><input id="shading" type="checkbox" checked> Shading</label>
     <label for="bones"><input id="bones" type="checkbox"> Show pivots</label>
   </div>
@@ -158,7 +163,7 @@
   }
   for (const p of rig.parts) {
     parts[p.name] = p;
-    loadImage(p.shape); loadImage(p.ink); loadImage(p.lines);
+    loadImage(p.shape); loadImage(p.lines); loadImage(p.shading);
     for (const m of Object.values(p.masks)) loadImage(m);
   }
 
@@ -185,9 +190,9 @@
   }
 
   // Main colour inside the silhouette, each mapped region painted in its own
-  // colour, then the shading laid over everything (just the outlines with
-  // shading switched off).
-  let shading = true;
+  // colour, then the shading laid over everything (when switched on), then the
+  // outlines: black, a darker version of the colour beneath them, or none.
+  let shading = true, outline = "black";
   const tinted = {};
   function retint() {
     for (const p of rig.parts) {
@@ -195,7 +200,22 @@
       const c = filled(images[p.shape], colours[group] || BODY);
       const g = c.getContext("2d");
       for (const r of p.regions) g.drawImage(filled(images[p.masks[r]], colours[key(group, r)] || BODY), 0, 0);
-      g.drawImage(images[shading ? p.ink : p.lines], 0, 0);
+      let tint = null;
+      if (outline === "tinted") {
+        // Copy the colours under the outline before any shading lands on them.
+        tint = document.createElement("canvas");
+        tint.width = SIZE[0]; tint.height = SIZE[1];
+        const tg = tint.getContext("2d");
+        tg.drawImage(c, 0, 0);
+        tg.globalCompositeOperation = "destination-in";
+        tg.drawImage(images[p.lines], 0, 0);
+        tg.globalCompositeOperation = "source-atop";
+        tg.fillStyle = "rgba(0, 0, 0, 0.55)";
+        tg.fillRect(0, 0, tint.width, tint.height);
+      }
+      if (shading) g.drawImage(images[p.shading], 0, 0);
+      if (outline === "black") g.drawImage(images[p.lines], 0, 0);
+      if (tint) g.drawImage(tint, 0, 0);
       if (p.far) {
         g.globalCompositeOperation = "source-atop";
         g.fillStyle = "rgba(0, 0, 0, 0.3)";
@@ -405,6 +425,11 @@
   pauseBtn.addEventListener("click", () => { paused = !paused; pauseBtn.textContent = paused ? "Play" : "Pause"; });
   const speedIn = document.getElementById("speed"), speedVal = document.getElementById("speed-val");
   speedIn.addEventListener("input", () => { speed = +speedIn.value; speedVal.textContent = speed.toFixed(2) + "×"; });
+  document.querySelectorAll("[data-outline]").forEach(btn => btn.addEventListener("click", () => {
+    outline = btn.dataset.outline;
+    document.querySelectorAll("[data-outline]").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    retint();
+  }));
   document.getElementById("shading").addEventListener("change", e => { shading = e.target.checked; retint(); });
   document.getElementById("bones").addEventListener("change", e => { showBones = e.target.checked; });
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { paused = true; pauseBtn.textContent = "Play"; }

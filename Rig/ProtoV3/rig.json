@@ -23,6 +23,7 @@
       "shape": "build/layer0_shape.png",
       "ink": "build/layer0_ink.png",
       "lines": "build/layer0_lines.png",
+      "shading": "build/layer0_shade.png",
       "masks": {
         "c2": "build/layer0_c2.png"
       }
@@ -46,6 +47,7 @@
       "shape": "build/layer14_shape.png",
       "ink": "build/layer14_ink.png",
       "lines": "build/layer14_lines.png",
+      "shading": "build/layer14_shade.png",
       "masks": {
         "c2": "build/layer14_c2.png"
       }
@@ -69,6 +71,7 @@
       "shape": "build/layer14_shape.png",
       "ink": "build/layer14_ink.png",
       "lines": "build/layer14_lines.png",
+      "shading": "build/layer14_shade.png",
       "masks": {
         "c2": "build/layer14_c2.png"
       }
@@ -92,6 +95,7 @@
       "shape": "build/layer6_shape.png",
       "ink": "build/layer6_ink.png",
       "lines": "build/layer6_lines.png",
+      "shading": "build/layer6_shade.png",
       "masks": {
         "c2": "build/layer6_c2.png"
       }
@@ -113,6 +117,7 @@
       "shape": "build/layer2_shape.png",
       "ink": "build/layer2_ink.png",
       "lines": "build/layer2_lines.png",
+      "shading": "build/layer2_shade.png",
       "masks": {}
     },
     {
@@ -134,6 +139,7 @@
       "shape": "build/layer4_shape.png",
       "ink": "build/layer4_ink.png",
       "lines": "build/layer4_lines.png",
+      "shading": "build/layer4_shade.png",
       "masks": {
         "c2": "build/layer4_c2.png"
       }
@@ -155,6 +161,7 @@
       "shape": "build/layer8_shape.png",
       "ink": "build/layer8_ink.png",
       "lines": "build/layer8_lines.png",
+      "shading": "build/layer8_shade.png",
       "masks": {}
     },
     {
@@ -176,6 +183,7 @@
       "shape": "build/layer10_shape.png",
       "ink": "build/layer10_ink.png",
       "lines": "build/layer10_lines.png",
+      "shading": "build/layer10_shade.png",
       "masks": {
         "c2": "build/layer10_c2.png"
       }
@@ -200,6 +208,7 @@
       "shape": "build/layer12_shape.png",
       "ink": "build/layer12_ink.png",
       "lines": "build/layer12_lines.png",
+      "shading": "build/layer12_shade.png",
       "masks": {
         "c2": "build/layer12_c2.png",
         "c3": "build/layer12_c3.png"
