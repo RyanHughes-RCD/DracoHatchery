@@ -5,6 +5,18 @@ window.DRAGON_RIG = {
   ],
   "parts": [
     {
+      "name": "torso",
+      "layer": "pixil-layer-0.png",
+      "parent": null,
+      "pivot": [
+        61.0,
+        80.32
+      ],
+      "far": false,
+      "shape": "build/layer0_shape.png",
+      "ink": "build/layer0_ink.png"
+    },
+    {
       "name": "far_wing",
       "layer": "pixil-layer-7.png",
       "parent": "torso",
@@ -51,18 +63,6 @@ window.DRAGON_RIG = {
       "far": false,
       "shape": "build/layer1_shape.png",
       "ink": "build/layer1_ink.png"
-    },
-    {
-      "name": "torso",
-      "layer": "pixil-layer-0.png",
-      "parent": null,
-      "pivot": [
-        61.0,
-        80.32
-      ],
-      "far": false,
-      "shape": "build/layer0_shape.png",
-      "ink": "build/layer0_ink.png"
     },
     {
       "name": "front_leg",

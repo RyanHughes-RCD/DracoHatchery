@@ -26,11 +26,11 @@ from make_alpha import to_alpha_mask  # noqa: E402
 # Draw order, back to front: (name, layer, parent, pivot or None, far side).
 # A None pivot is worked out from the sprite (see pivot_for).
 LAYOUT = [
+    ("torso", 0, None, None, False),
     ("far_wing", 7, "torso", (50.3, 73.9), True),
     ("wing", 7, "torso", (50.3, 73.9), False),
     ("back_leg", 3, "torso", (77.21, 81.5), False),
     ("tail", 1, "torso", (84.62, 76.62), False),
-    ("torso", 0, None, None, False),
     ("front_leg", 2, "torso", (45.0, 90.0), False),
     ("head", 4, "torso", (40.0, 69.0), False),
     ("jaw", 5, "head", None, False),
