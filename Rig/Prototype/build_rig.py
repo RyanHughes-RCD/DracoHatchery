@@ -23,14 +23,18 @@ BUILD = os.path.join(HERE, "build")
 
 # name -> (file, parent). Draw order is back to front.
 LAYOUT = [
+    ("far_wing", "wing.png", "torso"),
     ("back_leg", "back_leg.png", "torso"),
     ("tail", "tail.png", "torso"),
     ("torso", "torso.png", None),
+    ("wing", "wing.png", "torso"),
     ("front_leg", "front_leg.png", "torso"),
     ("head", "head.png", "torso"),
     ("eye", "eye.png", "head"),
 ]
 BACK_LEG_FALLBACK = "front_leg.png"
+# Parts that reuse another part's sprite and socket, drawn shaded behind the body.
+FAR_SIDE = {"far_wing": "wing"}
 
 
 def load(name):
@@ -104,7 +108,8 @@ def main():
     claimed = set()
     # Resolve the back leg last so it takes the matching socket the front
     # leg leaves free (needed while it falls back to the front leg sprite).
-    resolve = sorted(LAYOUT, key=lambda l: l[0] == "back_leg")
+    # Far-side copies come after the part they mirror.
+    resolve = sorted(LAYOUT, key=lambda l: (l[0] in FAR_SIDE, l[0] == "back_leg"))
     parts = {}
     for name, file, parent in resolve:
         placeholder = False
@@ -117,7 +122,14 @@ def main():
                 "parent": parent, "placeholder": placeholder, "offset": [0, 0]}
         out = im.copy()
         opx = out.load()
-        if name == "torso":
+        if name in FAR_SIDE:
+            near = parts[FAR_SIDE[name]]
+            for key in ("pivot", "offset", "socket"):
+                if key in near:
+                    part[key] = near[key]
+            for p in holes(im, px):
+                opx[p] = main_colour(px, opaque_pixels(im, px)) + (255,)
+        elif name == "torso":
             part["pivot"] = centre(body)
             for s in sockets:
                 for p in s["pixels"]:
@@ -142,8 +154,8 @@ def main():
             else:
                 # No hole: pivot on its own centre, stays where it was drawn.
                 part["pivot"] = centre(opaque_pixels(im, px))
-        if placeholder:
-            # Shade the stand-in so it reads as the far leg.
+        if placeholder or name in FAR_SIDE:
+            # Shade stand-ins and far-side copies so they sit behind the body.
             for p in opaque_pixels(out, opx):
                 r, g, b, a = opx[p]
                 opx[p] = (r * 3 // 4, g * 3 // 4, b * 3 // 4, a)

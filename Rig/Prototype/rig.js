@@ -5,18 +5,37 @@ window.DRAGON_RIG = {
   ],
   "parts": [
     {
-      "name": "back_leg",
-      "source": "parts/front_leg.png",
-      "image": "build/back_leg.png",
+      "name": "far_wing",
+      "source": "parts/wing.png",
+      "image": "build/far_wing.png",
       "parent": "torso",
-      "placeholder": true,
+      "placeholder": false,
       "offset": [
-        32.21,
-        -8.5
+        0.0,
+        0.0
       ],
       "pivot": [
-        45.0,
-        90.0
+        50.3,
+        73.9
+      ],
+      "socket": [
+        50.3,
+        73.9
+      ]
+    },
+    {
+      "name": "back_leg",
+      "source": "parts/back_leg.png",
+      "image": "build/back_leg.png",
+      "parent": "torso",
+      "placeholder": false,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "pivot": [
+        77.21,
+        81.5
       ],
       "socket": [
         77.21,
@@ -55,6 +74,25 @@ window.DRAGON_RIG = {
       "pivot": [
         60.86,
         80.8
+      ]
+    },
+    {
+      "name": "wing",
+      "source": "parts/wing.png",
+      "image": "build/wing.png",
+      "parent": "torso",
+      "placeholder": false,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "pivot": [
+        50.3,
+        73.9
+      ],
+      "socket": [
+        50.3,
+        73.9
       ]
     },
     {
@@ -111,17 +149,5 @@ window.DRAGON_RIG = {
       ]
     }
   ],
-  "unused_sockets": [
-    {
-      "colour": [
-        70,
-        70,
-        70
-      ],
-      "at": [
-        50.3,
-        73.9
-      ]
-    }
-  ]
+  "unused_sockets": []
 };

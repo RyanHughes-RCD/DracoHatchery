@@ -71,13 +71,14 @@
     <p class="sub">Each limb's transparent hole is pinned to the matching coloured marker on the torso and rotates around it.</p>
   </header>
 
-  <div class="stage"><canvas id="stage" width="160" height="80" aria-label="Animated prototype dragon"></canvas></div>
+  <div class="stage"><canvas id="stage" width="160" height="110" aria-label="Animated prototype dragon"></canvas></div>
 
   <div class="controls">
     <div class="seg" role="group" aria-label="Animation">
       <button id="anim-idle" data-anim="idle" aria-pressed="true">Idle</button>
       <button id="anim-walk" data-anim="walk" aria-pressed="false">Walk</button>
       <button id="anim-hop" data-anim="hop" aria-pressed="false">Hop</button>
+      <button id="anim-fly" data-anim="fly" aria-pressed="false">Fly</button>
     </div>
     <button class="btn" id="pause">Pause</button>
     <label for="speed">Speed <input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"><span class="speed-val" id="speed-val">1.00×</span></label>
@@ -100,7 +101,7 @@
   const canvas = document.getElementById("stage");
   const ctx = canvas.getContext("2d");
   // Crop of the 150x150 authoring canvas that the stage shows.
-  const VIEW = { x: -5, y: 40, w: 160, h: 80 };
+  const VIEW = { x: -5, y: 10, w: 160, h: 110 };
   const GROUND_Y = 109;
   const DEG = Math.PI / 180;
 
@@ -131,6 +132,7 @@
         tail: { rot: s(t * TAU * 0.4) * 9 },
         front_leg: { rot: -b * 2 },
         back_leg: { rot: -b * 2 },
+        wing: { rot: s(t * TAU * 0.5 - 0.3) * 4 },
         eye: { sy: blink(t) },
       };
     },
@@ -143,6 +145,7 @@
         tail: { rot: s(ph + 1.2) * 14 },
         front_leg: { rot: s(ph) * 22 },
         back_leg: { rot: s(ph + Math.PI) * 22 },
+        wing: { rot: s(ph * 2 + 0.4) * 6 },
         eye: { sy: blink(t) },
       };
     },
@@ -157,10 +160,30 @@
         tail: { rot: air * 22 - crouch * 6 },
         front_leg: { rot: -air * 30 + crouch * 10 },
         back_leg: { rot: air * 30 - crouch * 10 },
+        wing: { rot: -air * 30 + s(t * TAU * 3) * air * 25 + crouch * 10 },
         eye: { sy: air > 0.2 ? 1 : blink(t) },
       };
     },
+    fly(t) {
+      const flap = s(t * TAU * 2.2);
+      return {
+        root: { dy: -14 + flap * 2.5 },
+        torso: { rot: -4 + flap * 1.5 },
+        head: { rot: -flap * 3 },
+        tail: { rot: s(t * TAU * 0.9) * 12 - 4 },
+        front_leg: { rot: 35 + flap * 4 },
+        back_leg: { rot: 40 + flap * 4 },
+        wing: { rot: flap * 32 - 6 },
+        eye: { sy: blink(t) },
+      };
+    },
   };
+  // The far wing follows the near one a beat late and raised, so it peeks out behind the body.
+  function withFarSide(pose, t) {
+    const near = pose.wing || {};
+    pose.far_wing = { rot: (near.rot || 0) * 1.1 - 12 };
+    return pose;
+  }
 
   let anim = "idle", speed = 1, paused = false, showBones = false;
   let clock = 0, last = performance.now();
@@ -183,7 +206,7 @@
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (!paused) clock += dt * speed;
-    const pose = POSES[anim](clock);
+    const pose = withFarSide(POSES[anim](clock), clock);
     const css = getComputedStyle(document.documentElement);
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -206,7 +229,7 @@
     const torso = drawPart("torso", pose, root, placed);
     const head = drawPart("head", pose, torso, placed);
     drawPart("eye", pose, head, placed);
-    for (const n of ["back_leg", "tail", "front_leg"]) drawPart(n, pose, torso, placed);
+    for (const n of ["far_wing", "back_leg", "tail", "wing", "front_leg"]) drawPart(n, pose, torso, placed);
 
     for (const p of rig.parts) {
       const m = placed[p.name].m;
@@ -250,7 +273,7 @@
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${p.name.replace("_", " ")}</td><td>${p.parent || "root"}</td>` +
       `<td class="num">${fmt(p.socket)}</td><td class="num">${fmt(p.pivot)}</td>` +
-      `<td>${p.placeholder ? '<span class="tag">placeholder</span>' : "OK"}</td>`;
+      `<td>${p.placeholder ? '<span class="tag">placeholder</span>' : p.name === "far_wing" ? "Shaded copy of wing" : "OK"}</td>`;
     tbody.appendChild(tr);
   }
   const notes = [];
