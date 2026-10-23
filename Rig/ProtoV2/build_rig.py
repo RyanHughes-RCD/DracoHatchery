@@ -12,7 +12,7 @@ plus a mask per shade zone the layer has (see ZONES), e.g. layer<N>_dark.png.
 The viewer fills the shape with a flat colour and lays the ink over it. A zone
 given its own colour is filled with it and its shading is lifted off the ink.
 
-Usage: python3 refine.py && python3 build_rig.py
+Usage: python3 refine.py && python3 make_rock.py && python3 build_rig.py
 """
 import json
 import os
@@ -23,8 +23,9 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 BUILD = os.path.join(HERE, "build")
-# Art versions: the uploaded layers and the cleaned-up copies from refine.py.
-ART = {"original": REPO, "refined": os.path.join(HERE, "refined")}
+# Art versions: the uploaded layers, the cleaned-up copies from refine.py and
+# the spiky rock dragon from make_rock.py.
+ART = {"original": REPO, "refined": os.path.join(HERE, "refined"), "rock": os.path.join(HERE, "rock")}
 # Shade zones that can take their own colour: name -> grey range (inclusive).
 # The light-grey scales (222) stay with the main colour.
 ZONES = {"mid": (150, 200), "dark": (60, 149)}
@@ -62,8 +63,9 @@ def main():
     parts = []
     for name, layer, parent, pivot, far in LAYOUT:
         file = f"pixil-layer-{layer}.png"
-        zones = set()
+        zones = {}
         for art, folder in ART.items():
+            zones[art] = []
             src = Image.open(os.path.join(folder, file)).convert("RGBA")
             os.makedirs(os.path.join(BUILD, art), exist_ok=True)
             shape = Image.new("RGBA", src.size, (255, 255, 255, 0))
@@ -75,15 +77,16 @@ def main():
                 inside = Image.eval(grey, lambda v, lo=lo, hi=hi: 255 if lo <= v <= hi else 0)
                 inside = Image.composite(inside, Image.new("L", src.size, 0), alpha)
                 if inside.getbbox():
-                    zones.add(zone)
-                    mask = Image.new("RGBA", src.size, (255, 255, 255, 0))
-                    mask.putalpha(inside)
-                    mask.save(os.path.join(BUILD, art, f"layer{layer}_{zone}.png"))
+                    zones[art].append(zone)
+                # Written even when empty, since another art version may use the zone.
+                mask = Image.new("RGBA", src.size, (255, 255, 255, 0))
+                mask.putalpha(inside)
+                mask.save(os.path.join(BUILD, art, f"layer{layer}_{zone}.png"))
         # Pivots come from the original art so both versions turn on the same points.
         src = Image.open(os.path.join(ART["original"], file)).convert("RGBA")
         pivot = [round(v, 2) for v in (pivot or pivot_for(name, src))]
         parts.append({"name": name, "layer": file, "parent": parent,
-                      "pivot": pivot, "far": far, "zones": [z for z in ZONES if z in zones],
+                      "pivot": pivot, "far": far, "zones": zones,
                       "shape": f"layer{layer}_shape.png", "ink": f"layer{layer}_ink.png"})
         print(name, f"layer {layer}", pivot)
     rig = {"canvas": [150, 150], "art": {k: f"build/{k}/" for k in ART}, "parts": parts}

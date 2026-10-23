@@ -104,6 +104,7 @@
     <div class="seg" role="group" aria-label="Art version">
       <button id="art-original" data-art="original" aria-pressed="false">Original</button>
       <button id="art-refined" data-art="refined" aria-pressed="true">Refined</button>
+      <button id="art-rock" data-art="rock" aria-pressed="false">Rock</button>
     </div>
     <button class="btn" id="pause">Pause</button>
     <label for="speed">Speed <input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"><span class="speed-val" id="speed-val">1.00×</span></label>
@@ -113,6 +114,7 @@
   <section class="colours" aria-label="Colours">
     <h2>Colours</h2>
     <label class="all" for="col-all"><input id="col-all" type="color" value="#4f9d6b"> Whole body (main colour of everything but the eye)</label>
+    <p class="note" id="rock-note" hidden style="grid-column: 1 / -1">Rock dragon: Light shade colours the cracks and belly, Dark shade colours the spikes and horns. It keeps its own palette, so your colours for the other versions are untouched.</p>
     <div id="part-colours" style="display: contents"></div>
     <button class="btn" id="reset-colours" type="button">Reset colours</button>
   </section>
@@ -159,14 +161,32 @@
     ["tail", "Tail", "#4f9d6b"], ["front_leg", "Front leg", "#4f9d6b"], ["back_leg", "Back leg", "#4f9d6b"],
     ["wing", "Wings", "#8a6cc4"], ["eye", "Eye", "#f4d03f"],
   ];
-  const DEFAULTS = Object.fromEntries(GROUPS.map(([k, , c]) => [k, c]));
+  // Each palette remembers its own colours; the rock dragon has its own.
+  const DEFAULTS = {
+    standard: Object.fromEntries(GROUPS.map(([k, , c]) => [k, c])),
+    rock: {
+      torso: "#8b8178", head: "#8b8178", jaw: "#6e655d", tail: "#8b8178", front_leg: "#8b8178", back_leg: "#8b8178",
+      wing: "#6f655c", eye: "#ff9f1c",
+      "torso.mid": "#e8742a", "head.mid": "#e8742a", "jaw.mid": "#e8742a", "tail.mid": "#e8742a",
+      "front_leg.mid": "#e8742a", "back_leg.mid": "#e8742a",
+      "torso.dark": "#4a423c", "head.dark": "#4a423c", "tail.dark": "#4a423c", "wing.dark": "#3b3430",
+    },
+  };
+  const paletteOf = version => version === "rock" ? "rock" : "standard";
+  const STORE = { standard: "protoV2.colours", rock: "protoV2.colours.rock" };
   const groupOf = name => name === "far_wing" ? "wing" : name;
   // Shaded areas that can take their own colour. Unset means "follow the main colour".
   const ZONE_LABELS = { mid: "Light shade", dark: "Dark shade" };
   const zoneKey = (group, zone) => `${group}.${zone}`;
-  let colours = { ...DEFAULTS };
-  try { Object.assign(colours, JSON.parse(localStorage.getItem("protoV2.colours") || "{}")); } catch (e) {}
-  const saveColours = () => { try { localStorage.setItem("protoV2.colours", JSON.stringify(colours)); } catch (e) {} };
+  const palettes = {};
+  for (const name of Object.keys(DEFAULTS)) {
+    palettes[name] = { ...DEFAULTS[name] };
+    try { palettes[name] = JSON.parse(localStorage.getItem(STORE[name])) || palettes[name]; } catch (e) {}
+  }
+  let colours = palettes.standard;
+  const saveColours = () => {
+    try { localStorage.setItem(STORE[paletteOf(art)], JSON.stringify(colours)); } catch (e) {}
+  };
 
   const parts = {};
   const images = {};
@@ -183,10 +203,11 @@
     parts[p.name] = p;
     for (const dir of Object.values(rig.art)) {
       loadImage(dir + p.shape); loadImage(dir + p.ink);
-      for (const z of p.zones) loadImage(dir + p.shape.replace("_shape", "_" + z));
+      for (const z of new Set(Object.values(p.zones).flat())) loadImage(dir + p.shape.replace("_shape", "_" + z));
     }
   }
   let art = "refined";
+  colours = palettes[paletteOf(art)];
 
   // Nearest-neighbour enlargement so each art pixel becomes a crisp square.
   function enlarge(src) {
@@ -224,7 +245,7 @@
       const ig = ink.getContext("2d");
       ig.drawImage(images[dir + p.ink], 0, 0);
       ig.globalCompositeOperation = "destination-out";
-      for (const z of p.zones) {
+      for (const z of p.zones[art]) {
         const own = colours[zoneKey(group, z)];
         if (!own) continue;
         const mask = images[dir + p.shape.replace("_shape", "_" + z)];
@@ -395,13 +416,17 @@
   // Colour pickers: one card per part, with a main colour and one picker per
   // shade zone the part has. A zone on "Auto" follows the main colour.
   const holder = document.getElementById("part-colours");
-  const inputs = {}, autoBtns = {};
+  const inputs = {}, autoBtns = {}, zoneRows = {};
   function syncZone(group, zone) {
     const key = zoneKey(group, zone);
     inputs[key].value = colours[key] || colours[group];
     autoBtns[key].setAttribute("aria-pressed", String(!colours[key]));
   }
   function syncAll() {
+    // Only show shade pickers that colour something in the current art.
+    for (const [key, { row, group, zone }] of Object.entries(zoneRows))
+      row.hidden = !rig.parts.some(p => groupOf(p.name) === group && p.zones[art].includes(zone));
+    document.getElementById("rock-note").hidden = art !== "rock";
     for (const [group] of GROUPS) {
       inputs[group].value = colours[group];
       for (const z of Object.keys(ZONE_LABELS)) if (inputs[zoneKey(group, z)]) syncZone(group, z);
@@ -409,7 +434,8 @@
     all.value = colours.torso;
   }
   for (const [group, label] of GROUPS) {
-    const zones = Object.keys(ZONE_LABELS).filter(z => rig.parts.some(p => groupOf(p.name) === group && p.zones.includes(z)));
+    const inGroup = rig.parts.filter(p => groupOf(p.name) === group);
+    const zones = Object.keys(ZONE_LABELS).filter(z => inGroup.some(p => Object.values(p.zones).flat().includes(z)));
     const card = document.createElement("div");
     card.className = "part-card";
     card.innerHTML = `<h3>${label}</h3><label for="col-${group}">Main <input id="col-${group}" type="color"></label>` +
@@ -427,6 +453,7 @@
       const key = zoneKey(group, z);
       inputs[key] = card.querySelector(`#col-${group}-${z}`);
       autoBtns[key] = card.querySelector(`#auto-${group}-${z}`);
+      zoneRows[key] = { row: inputs[key].closest("label"), group, zone: z };
       inputs[key].addEventListener("input", () => { colours[key] = inputs[key].value; syncZone(group, z); retint(); saveColours(); });
       autoBtns[key].addEventListener("click", () => { delete colours[key]; syncZone(group, z); retint(); saveColours(); });
     }
@@ -438,15 +465,16 @@
     syncAll(); retint(); saveColours();
   });
   document.getElementById("reset-colours").addEventListener("click", () => {
-    colours = { ...DEFAULTS };
+    colours = palettes[paletteOf(art)] = { ...DEFAULTS[paletteOf(art)] };
     syncAll(); retint(); saveColours();
   });
 
   // Art version switch
   document.querySelectorAll("[data-art]").forEach(btn => btn.addEventListener("click", () => {
     art = btn.dataset.art;
+    colours = palettes[paletteOf(art)];
     document.querySelectorAll("[data-art]").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
-    retint();
+    syncAll(); retint();
   }));
 
   // Before/after view of one layer: white silhouette with the ink over it

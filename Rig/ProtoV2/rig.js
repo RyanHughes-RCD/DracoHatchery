@@ -5,7 +5,8 @@ window.DRAGON_RIG = {
   ],
   "art": {
     "original": "build/original/",
-    "refined": "build/refined/"
+    "refined": "build/refined/",
+    "rock": "build/rock/"
   },
   "parts": [
     {
@@ -17,9 +18,18 @@ window.DRAGON_RIG = {
         80.32
       ],
       "far": false,
-      "zones": [
-        "mid"
-      ],
+      "zones": {
+        "original": [
+          "mid"
+        ],
+        "refined": [
+          "mid"
+        ],
+        "rock": [
+          "mid",
+          "dark"
+        ]
+      },
       "shape": "layer0_shape.png",
       "ink": "layer0_ink.png"
     },
@@ -32,9 +42,17 @@ window.DRAGON_RIG = {
         73.9
       ],
       "far": true,
-      "zones": [
-        "dark"
-      ],
+      "zones": {
+        "original": [
+          "dark"
+        ],
+        "refined": [
+          "dark"
+        ],
+        "rock": [
+          "dark"
+        ]
+      },
       "shape": "layer7_shape.png",
       "ink": "layer7_ink.png"
     },
@@ -47,9 +65,17 @@ window.DRAGON_RIG = {
         73.9
       ],
       "far": false,
-      "zones": [
-        "dark"
-      ],
+      "zones": {
+        "original": [
+          "dark"
+        ],
+        "refined": [
+          "dark"
+        ],
+        "rock": [
+          "dark"
+        ]
+      },
       "shape": "layer7_shape.png",
       "ink": "layer7_ink.png"
     },
@@ -62,9 +88,17 @@ window.DRAGON_RIG = {
         81.5
       ],
       "far": false,
-      "zones": [
-        "mid"
-      ],
+      "zones": {
+        "original": [
+          "mid"
+        ],
+        "refined": [
+          "mid"
+        ],
+        "rock": [
+          "mid"
+        ]
+      },
       "shape": "layer3_shape.png",
       "ink": "layer3_ink.png"
     },
@@ -77,10 +111,20 @@ window.DRAGON_RIG = {
         76.62
       ],
       "far": false,
-      "zones": [
-        "mid",
-        "dark"
-      ],
+      "zones": {
+        "original": [
+          "mid",
+          "dark"
+        ],
+        "refined": [
+          "mid",
+          "dark"
+        ],
+        "rock": [
+          "mid",
+          "dark"
+        ]
+      },
       "shape": "layer1_shape.png",
       "ink": "layer1_ink.png"
     },
@@ -93,9 +137,17 @@ window.DRAGON_RIG = {
         90.0
       ],
       "far": false,
-      "zones": [
-        "mid"
-      ],
+      "zones": {
+        "original": [
+          "mid"
+        ],
+        "refined": [
+          "mid"
+        ],
+        "rock": [
+          "mid"
+        ]
+      },
       "shape": "layer2_shape.png",
       "ink": "layer2_ink.png"
     },
@@ -108,9 +160,18 @@ window.DRAGON_RIG = {
         69.0
       ],
       "far": false,
-      "zones": [
-        "mid"
-      ],
+      "zones": {
+        "original": [
+          "mid"
+        ],
+        "refined": [
+          "mid"
+        ],
+        "rock": [
+          "mid",
+          "dark"
+        ]
+      },
       "shape": "layer4_shape.png",
       "ink": "layer4_ink.png"
     },
@@ -123,9 +184,17 @@ window.DRAGON_RIG = {
         70.5
       ],
       "far": false,
-      "zones": [
-        "mid"
-      ],
+      "zones": {
+        "original": [
+          "mid"
+        ],
+        "refined": [
+          "mid"
+        ],
+        "rock": [
+          "mid"
+        ]
+      },
       "shape": "layer5_shape.png",
       "ink": "layer5_ink.png"
     },
@@ -138,7 +207,11 @@ window.DRAGON_RIG = {
         62.79
       ],
       "far": false,
-      "zones": [],
+      "zones": {
+        "original": [],
+        "refined": [],
+        "rock": []
+      },
       "shape": "layer6_shape.png",
       "ink": "layer6_ink.png"
     }
