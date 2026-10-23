@@ -1,0 +1,200 @@
+window.DRAGON_RIG = {
+  "canvas": [
+    150,
+    150
+  ],
+  "parts": [
+    {
+      "name": "torso",
+      "layers": [
+        "pixil-layer-0.png",
+        "pixil-layer-1.png"
+      ],
+      "parent": null,
+      "pivot": [
+        61.0,
+        80.32
+      ],
+      "far": false,
+      "main": true,
+      "regions": [
+        "c2"
+      ],
+      "shape": "build/layer0_shape.png",
+      "ink": "build/layer0_ink.png",
+      "masks": {
+        "c2": "build/layer0_c2.png"
+      }
+    },
+    {
+      "name": "far_wing",
+      "layers": [
+        "pixil-layer-14.png",
+        "pixil-layer-15.png"
+      ],
+      "parent": "torso",
+      "pivot": [
+        50.3,
+        73.9
+      ],
+      "far": true,
+      "main": true,
+      "regions": [
+        "c2"
+      ],
+      "shape": "build/layer14_shape.png",
+      "ink": "build/layer14_ink.png",
+      "masks": {
+        "c2": "build/layer14_c2.png"
+      }
+    },
+    {
+      "name": "wing",
+      "layers": [
+        "pixil-layer-14.png",
+        "pixil-layer-15.png"
+      ],
+      "parent": "torso",
+      "pivot": [
+        50.3,
+        73.9
+      ],
+      "far": false,
+      "main": true,
+      "regions": [
+        "c2"
+      ],
+      "shape": "build/layer14_shape.png",
+      "ink": "build/layer14_ink.png",
+      "masks": {
+        "c2": "build/layer14_c2.png"
+      }
+    },
+    {
+      "name": "back_leg",
+      "layers": [
+        "pixil-layer-6.png",
+        "pixil-layer-7.png"
+      ],
+      "parent": "torso",
+      "pivot": [
+        77.21,
+        81.5
+      ],
+      "far": false,
+      "main": true,
+      "regions": [
+        "c2"
+      ],
+      "shape": "build/layer6_shape.png",
+      "ink": "build/layer6_ink.png",
+      "masks": {
+        "c2": "build/layer6_c2.png"
+      }
+    },
+    {
+      "name": "tail",
+      "layers": [
+        "pixil-layer-2.png",
+        "pixil-layer-3.png"
+      ],
+      "parent": "torso",
+      "pivot": [
+        84.62,
+        76.62
+      ],
+      "far": false,
+      "main": true,
+      "regions": [],
+      "shape": "build/layer2_shape.png",
+      "ink": "build/layer2_ink.png",
+      "masks": {}
+    },
+    {
+      "name": "front_leg",
+      "layers": [
+        "pixil-layer-4.png",
+        "pixil-layer-5.png"
+      ],
+      "parent": "torso",
+      "pivot": [
+        45.0,
+        90.0
+      ],
+      "far": false,
+      "main": true,
+      "regions": [
+        "c2"
+      ],
+      "shape": "build/layer4_shape.png",
+      "ink": "build/layer4_ink.png",
+      "masks": {
+        "c2": "build/layer4_c2.png"
+      }
+    },
+    {
+      "name": "head",
+      "layers": [
+        "pixil-layer-8.png",
+        "pixil-layer-9.png"
+      ],
+      "parent": "torso",
+      "pivot": [
+        40.0,
+        69.0
+      ],
+      "far": false,
+      "main": true,
+      "regions": [],
+      "shape": "build/layer8_shape.png",
+      "ink": "build/layer8_ink.png",
+      "masks": {}
+    },
+    {
+      "name": "jaw",
+      "layers": [
+        "pixil-layer-10.png",
+        "pixil-layer-11.png"
+      ],
+      "parent": "head",
+      "pivot": [
+        35.5,
+        70.5
+      ],
+      "far": false,
+      "main": false,
+      "regions": [
+        "c2"
+      ],
+      "shape": "build/layer10_shape.png",
+      "ink": "build/layer10_ink.png",
+      "masks": {
+        "c2": "build/layer10_c2.png"
+      }
+    },
+    {
+      "name": "eye",
+      "layers": [
+        "pixil-layer-12.png",
+        "pixil-layer-13.png"
+      ],
+      "parent": "head",
+      "pivot": [
+        29.39,
+        62.79
+      ],
+      "far": false,
+      "main": false,
+      "regions": [
+        "c2",
+        "c3"
+      ],
+      "shape": "build/layer12_shape.png",
+      "ink": "build/layer12_ink.png",
+      "masks": {
+        "c2": "build/layer12_c2.png",
+        "c3": "build/layer12_c3.png"
+      }
+    }
+  ]
+};
