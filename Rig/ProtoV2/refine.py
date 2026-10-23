@@ -8,6 +8,9 @@ Writes refined copies to refined/ and leaves the originals untouched:
   3. Outline corners: where an outline turns a corner as an L of three
      pixels, the corner pixel is dropped so the line steps diagonally at an
      even 1px weight. It takes the colour of the side it was facing.
+  4. Scales: a faint scallop pattern in a light grey on the white areas of
+     the body parts, kept one pixel clear of any ink. Once darkness becomes
+     alpha this reads as a slightly deeper shade of the chosen colour.
 
 The eye (layer 6) is too small to benefit and is copied as is.
 
@@ -25,6 +28,27 @@ OUT = os.path.join(HERE, "refined")
 OUTLINE = 19
 MERGE_INTO_OUTLINE = {39}
 SKIP = {6}
+DARK_SHADE = 133
+
+# Scales: which layers get them and how dark (255 is white, i.e. invisible).
+SCALE_LAYERS = {0, 1, 2, 3, 4}
+SCALE_SHADE = 222
+WHITE = 255
+
+
+def is_scale(x, y):
+    """Rows of rounded cups, 6px wide and 3px deep, alternate rows offset by 3.
+
+    One cup:  x . . . . . x
+              . x . . . x .
+              . . x x x . .
+    Coordinates are on the shared canvas, so the pattern lines up across parts at rest.
+    """
+    band, row = divmod(y, 3)
+    u = (x + 3 * (band % 2)) % 6
+    return u in ((0,), (1, 5), (2, 3, 4))[row]
+
+
 T = None  # transparent
 
 
@@ -47,7 +71,7 @@ def write(grid, w, h, path):
     im.save(path)
 
 
-def refine(grid, w, h):
+def refine(grid, w, h, scales=False):
     def at(x, y):
         return grid[y][x] if 0 <= x < w and 0 <= y < h else T
 
@@ -94,6 +118,15 @@ def refine(grid, w, h):
                 else:
                     continue
                 break
+    if scales:
+        for y in range(h):
+            for x in range(w):
+                if grid[y][x] != WHITE or not is_scale(x, y):
+                    continue
+                ring = [at(x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)]
+                if all(n is not T and not ink(n) and n != DARK_SHADE for n in ring):
+                    grid[y][x] = SCALE_SHADE
+                    changes["scale"] += 1
     return changes
 
 
@@ -102,7 +135,7 @@ def main():
     for layer in range(8):
         name = f"pixil-layer-{layer}.png"
         grid, w, h = read(os.path.join(REPO, name))
-        changes = Counter() if layer in SKIP else refine(grid, w, h)
+        changes = Counter() if layer in SKIP else refine(grid, w, h, scales=layer in SCALE_LAYERS)
         write(grid, w, h, os.path.join(OUT, name))
         print(name, dict(changes) or "unchanged")
 
