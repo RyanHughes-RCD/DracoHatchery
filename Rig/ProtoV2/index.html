@@ -1,0 +1,365 @@
+<title>Proto-Dragon V2 Rig</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Work+Sans:wght@400;600&display=swap">
+<style>
+  /* Layout: one centred column; the pixel stage leads, controls and the bone table follow. */
+  :root {
+    --bg: #f3f1f6;
+    --panel: #ffffff;
+    --sky: #dbe6f7;
+    --ground: #9fb08a;
+    --ink: #2a2433;
+    --muted: #6d6578;
+    --line: #ddd7e4;
+    --accent: #e8452e;
+    --accent-ink: #ffffff;
+    --bone: #2f6fdf;
+    --font-display: "Pixelify Sans", "Courier New", monospace;
+    --font-body: "Work Sans", system-ui, sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17141c; --panel: #211d28; --sky: #263248; --ground: #4f5e3f;
+      --ink: #ece8f2; --muted: #a59db0; --line: #352f3e; --accent: #ff6a4f;
+      --accent-ink: #1a0f0c; --bone: #7fb0ff; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17141c; --panel: #211d28; --sky: #263248; --ground: #4f5e3f;
+    --ink: #ece8f2; --muted: #a59db0; --line: #352f3e; --accent: #ff6a4f;
+    --accent-ink: #1a0f0c; --bone: #7fb0ff; color-scheme: dark;
+  }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px 40px;
+  }
+  main { max-width: 760px; margin: 0 auto; display: grid; gap: 18px; }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: 2rem; margin: 0; line-height: 1.1; text-wrap: balance; }
+  .sub { color: var(--muted); margin: 4px 0 0; max-width: 62ch; }
+  .stage { background: var(--sky); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; image-rendering: crisp-edges; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg button, .btn {
+    font: 600 0.9rem var(--font-body); padding: 8px 14px; border: 0; background: var(--panel); color: var(--ink); cursor: pointer;
+  }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .btn { border: 1px solid var(--line); border-radius: 6px; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--bone); outline-offset: 2px; }
+  label { display: inline-flex; gap: 8px; align-items: center; font-size: 0.9rem; color: var(--muted); }
+  input[type="range"] { width: 120px; accent-color: var(--accent); }
+  input[type="checkbox"] { accent-color: var(--bone); }
+  .speed-val { font-family: var(--font-data); color: var(--ink); min-width: 3.5ch; font-variant-numeric: tabular-nums; }
+  .table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-weight: 600; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+  td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--line); }
+  .colours { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+  .colours h2 { grid-column: 1 / -1; margin: 0; font: 600 0.75rem var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .colours label { justify-content: space-between; color: var(--ink); background: var(--bg); border-radius: 6px; padding: 6px 6px 6px 10px; }
+  .colours label.all { grid-column: 1 / -1; justify-content: flex-start; font-weight: 600; }
+  input[type="color"] { width: 40px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: none; cursor: pointer; }
+  .tag { font-size: 0.75rem; padding: 1px 6px; border-radius: 4px; background: var(--accent); color: var(--accent-ink); }
+  .note { font-size: 0.85rem; color: var(--muted); margin: 0; max-width: 70ch; }
+</style>
+
+<main>
+  <header>
+    <h1>Proto-Dragon V2 Rig</h1>
+    <p class="sub">Each part is filled with a flat colour. The black-and-white layer art sits on top as ink: white lets the colour through, black stays solid, greys shade it.</p>
+  </header>
+
+  <div class="stage"><canvas id="stage" width="160" height="110" aria-label="Animated colourable dragon"></canvas></div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Animation">
+      <button id="anim-idle" data-anim="idle" aria-pressed="true">Idle</button>
+      <button id="anim-walk" data-anim="walk" aria-pressed="false">Walk</button>
+      <button id="anim-hop" data-anim="hop" aria-pressed="false">Hop</button>
+      <button id="anim-fly" data-anim="fly" aria-pressed="false">Fly</button>
+      <button id="anim-roar" data-anim="roar" aria-pressed="false">Roar</button>
+    </div>
+    <button class="btn" id="pause">Pause</button>
+    <label for="speed">Speed <input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"><span class="speed-val" id="speed-val">1.00×</span></label>
+    <label for="bones"><input id="bones" type="checkbox"> Show pivots</label>
+  </div>
+
+  <section class="colours" aria-label="Colours">
+    <h2>Colours</h2>
+    <label class="all" for="col-all"><input id="col-all" type="color" value="#4f9d6b"> Whole body (everything but the eye)</label>
+    <div id="part-colours" style="display: contents"></div>
+    <button class="btn" id="reset-colours" type="button">Reset colours</button>
+  </section>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Part</th><th>Layer</th><th>Parent</th><th>Pivot (x, y)</th></tr></thead>
+      <tbody id="parts"></tbody>
+    </table>
+  </div>
+</main>
+
+<script src="rig.js"></script>
+<script>
+(() => {
+  const rig = window.DRAGON_RIG;
+  const canvas = document.getElementById("stage");
+  const ctx = canvas.getContext("2d");
+  // Crop of the 150x150 authoring canvas that the stage shows.
+  const VIEW = { x: -5, y: 10, w: 160, h: 110 };
+  const GROUND_Y = 109;
+  const SIZE = rig.canvas;
+
+  // Colour groups: the far wing shares the wing's colour.
+  const GROUPS = [
+    ["torso", "Torso", "#4f9d6b"], ["head", "Head", "#4f9d6b"], ["jaw", "Jaw", "#e3c27a"],
+    ["tail", "Tail", "#4f9d6b"], ["front_leg", "Front leg", "#4f9d6b"], ["back_leg", "Back leg", "#4f9d6b"],
+    ["wing", "Wings", "#8a6cc4"], ["eye", "Eye", "#f4d03f"],
+  ];
+  const DEFAULTS = Object.fromEntries(GROUPS.map(([k, , c]) => [k, c]));
+  const groupOf = name => name === "far_wing" ? "wing" : name;
+  let colours = { ...DEFAULTS };
+  try { Object.assign(colours, JSON.parse(localStorage.getItem("protoV2.colours") || "{}")); } catch (e) {}
+  const saveColours = () => { try { localStorage.setItem("protoV2.colours", JSON.stringify(colours)); } catch (e) {} };
+
+  const parts = {};
+  const images = {};
+  let pending = 0;
+  function loadImage(src) {
+    if (images[src]) return;
+    const img = new Image();
+    pending++;
+    img.onload = () => { if (--pending === 0) { retint(); requestAnimationFrame(frame); } };
+    img.src = src;
+    images[src] = img;
+  }
+  for (const p of rig.parts) { parts[p.name] = p; loadImage(p.shape); loadImage(p.ink); }
+
+  // Flat colour inside the silhouette, far side shaded, ink laid over the top.
+  const tinted = {};
+  function retint() {
+    for (const p of rig.parts) {
+      const c = tinted[p.name] || (tinted[p.name] = document.createElement("canvas"));
+      c.width = SIZE[0]; c.height = SIZE[1];
+      const g = c.getContext("2d");
+      g.drawImage(images[p.shape], 0, 0);
+      g.globalCompositeOperation = "source-in";
+      g.fillStyle = colours[groupOf(p.name)];
+      g.fillRect(0, 0, c.width, c.height);
+      g.globalCompositeOperation = "source-over";
+      g.drawImage(images[p.ink], 0, 0);
+      if (p.far) {
+        g.globalCompositeOperation = "source-atop";
+        g.fillStyle = "rgba(0, 0, 0, 0.3)";
+        g.fillRect(0, 0, c.width, c.height);
+        g.globalCompositeOperation = "source-over";
+      }
+    }
+  }
+
+  // Each pose gives per-part rotation (degrees) and nudges (pixels) at time t (seconds).
+  const s = Math.sin, TAU = Math.PI * 2;
+  const blink = t => (t % 3.2) < 0.12 ? 0.15 : 1;
+  const POSES = {
+    idle(t) {
+      const b = s(t * TAU * 0.5);
+      return {
+        root: { dy: b * 0.8 },
+        torso: { rot: b * 1 },
+        head: { rot: s(t * TAU * 0.5 - 0.6) * 4 },
+        jaw: { rot: -Math.max(0, s(t * TAU * 0.25)) * 4 },
+        tail: { rot: s(t * TAU * 0.4) * 9 },
+        front_leg: { rot: -b * 2 },
+        back_leg: { rot: -b * 2 },
+        wing: { rot: s(t * TAU * 0.5 - 0.3) * 4 },
+        eye: { sy: blink(t) },
+      };
+    },
+    walk(t) {
+      const ph = t * TAU * 1.1;
+      return {
+        root: { dy: -Math.abs(s(ph)) * 1.6 + 0.8 },
+        torso: { rot: s(ph * 2) * 1.5 },
+        head: { rot: s(ph * 2 + 0.8) * 5 },
+        tail: { rot: s(ph + 1.2) * 14 },
+        front_leg: { rot: s(ph) * 22 },
+        back_leg: { rot: s(ph + Math.PI) * 22 },
+        wing: { rot: s(ph * 2 + 0.4) * 6 },
+        eye: { sy: blink(t) },
+      };
+    },
+    hop(t) {
+      const cyc = (t * 0.9) % 1;
+      const air = cyc > 0.3 && cyc < 0.8 ? s((cyc - 0.3) / 0.5 * Math.PI) : 0;
+      const crouch = cyc < 0.3 ? s(cyc / 0.3 * Math.PI) : 0;
+      return {
+        root: { dy: -air * 16 + crouch * 2 },
+        torso: { rot: -air * 8 + crouch * 3 },
+        head: { rot: -air * 10 + crouch * 6 },
+        jaw: { rot: -air * 12 },
+        tail: { rot: air * 22 - crouch * 6 },
+        front_leg: { rot: -air * 30 + crouch * 10 },
+        back_leg: { rot: air * 30 - crouch * 10 },
+        wing: { rot: -air * 30 + s(t * TAU * 3) * air * 25 + crouch * 10 },
+        eye: { sy: air > 0.2 ? 1 : blink(t) },
+      };
+    },
+    fly(t) {
+      const flap = s(t * TAU * 2.2);
+      return {
+        root: { dy: -14 + flap * 2.5 },
+        torso: { rot: -4 + flap * 1.5 },
+        head: { rot: -flap * 3 },
+        tail: { rot: s(t * TAU * 0.9) * 12 - 4 },
+        front_leg: { rot: 35 + flap * 4 },
+        back_leg: { rot: 40 + flap * 4 },
+        wing: { rot: flap * 32 - 6 },
+        eye: { sy: blink(t) },
+      };
+    },
+    roar(t) {
+      const cyc = (t * 0.5) % 1;
+      // Rear back, hold the roar, settle.
+      const open = cyc < 0.2 ? cyc / 0.2 : cyc < 0.65 ? 1 : cyc < 0.85 ? 1 - (cyc - 0.65) / 0.2 : 0;
+      const shake = open === 1 ? s(t * TAU * 9) : 0;
+      return {
+        root: { dy: 0 },
+        torso: { rot: -open * 5 },
+        head: { rot: -open * 14 + shake * 1.5 },
+        jaw: { rot: -open * 28 },
+        tail: { rot: open * 12 + shake * 3 },
+        front_leg: { rot: open * 5 },
+        back_leg: { rot: open * 5 },
+        wing: { rot: -open * 22 + shake * 3 },
+        eye: { sy: 1 },
+      };
+    },
+  };
+  // The far wing follows the near one, raised, so it peeks out behind it.
+  function withFarSide(pose) {
+    pose.far_wing = { rot: ((pose.wing || {}).rot || 0) * 1.1 - 12 };
+    return pose;
+  }
+
+  let anim = "idle", speed = 1, paused = false, showBones = false;
+  let clock = 0, last = performance.now();
+
+  // Parent transform, then rotate the part around its pivot.
+  function placePart(name, pose, parentMatrix, out) {
+    const p = parts[name];
+    const st = pose[name] || {};
+    const m = DOMMatrix.fromMatrix(parentMatrix);
+    m.translateSelf(p.pivot[0], p.pivot[1]);
+    m.rotateSelf(st.rot || 0);
+    m.scaleSelf(st.sx || 1, st.sy || 1);
+    m.translateSelf(-p.pivot[0], -p.pivot[1]);
+    out[name] = { m, at: parentMatrix.transformPoint(new DOMPoint(p.pivot[0], p.pivot[1])) };
+    return m;
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!paused) clock += dt * speed;
+    const pose = withFarSide(POSES[anim](clock));
+    const css = getComputedStyle(document.documentElement);
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+
+    // Ground with ticks that scroll while walking.
+    const gy = GROUND_Y - VIEW.y;
+    ctx.fillStyle = css.getPropertyValue("--ground");
+    ctx.fillRect(0, gy, canvas.width, canvas.height - gy);
+    const scroll = anim === "walk" ? (clock * 22) % 12 : 0;
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = css.getPropertyValue("--ink");
+    for (let x = -scroll; x < canvas.width; x += 12) ctx.fillRect(Math.round(x), gy + 3, 3, 1);
+    ctx.globalAlpha = 1;
+
+    const view = new DOMMatrix().translateSelf(-VIEW.x, -VIEW.y);
+    const root = view.translate(0, Math.round(pose.root.dy || 0));
+    const placed = {};
+    const order = rig.parts.filter(p => !p.parent).concat(rig.parts.filter(p => p.parent === "torso"), rig.parts.filter(p => p.parent && p.parent !== "torso"));
+    for (const p of order) placePart(p.name, pose, p.parent ? placed[p.parent].m : root, placed);
+
+    for (const p of rig.parts) {
+      const m = placed[p.name].m;
+      ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
+      ctx.drawImage(tinted[p.name], 0, 0);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    if (showBones) {
+      const bone = css.getPropertyValue("--bone");
+      ctx.strokeStyle = bone; ctx.fillStyle = bone; ctx.lineWidth = 0.5;
+      for (const p of rig.parts) {
+        if (!p.parent) continue;
+        const a = placed[p.parent].at, b = placed[p.name].at;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+      for (const p of rig.parts) {
+        const q = placed[p.name].at;
+        ctx.fillRect(q.x - 1, q.y - 1, 2, 2);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // Colour pickers
+  const holder = document.getElementById("part-colours");
+  const inputs = {};
+  for (const [key, label] of GROUPS) {
+    const l = document.createElement("label");
+    l.htmlFor = "col-" + key;
+    l.innerHTML = `${label} <input id="col-${key}" type="color">`;
+    holder.appendChild(l);
+    const input = l.querySelector("input");
+    input.value = colours[key];
+    input.addEventListener("input", () => { colours[key] = input.value; retint(); saveColours(); });
+    inputs[key] = input;
+  }
+  const all = document.getElementById("col-all");
+  all.value = colours.torso;
+  all.addEventListener("input", () => {
+    for (const [key] of GROUPS) if (key !== "eye") { colours[key] = all.value; inputs[key].value = all.value; }
+    retint(); saveColours();
+  });
+  document.getElementById("reset-colours").addEventListener("click", () => {
+    colours = { ...DEFAULTS };
+    for (const [key] of GROUPS) inputs[key].value = colours[key];
+    all.value = colours.torso;
+    retint(); saveColours();
+  });
+
+  // Controls
+  document.querySelectorAll("[data-anim]").forEach(btn => btn.addEventListener("click", () => {
+    anim = btn.dataset.anim; clock = 0;
+    document.querySelectorAll("[data-anim]").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+  }));
+  const pauseBtn = document.getElementById("pause");
+  pauseBtn.addEventListener("click", () => { paused = !paused; pauseBtn.textContent = paused ? "Play" : "Pause"; });
+  const speedIn = document.getElementById("speed"), speedVal = document.getElementById("speed-val");
+  speedIn.addEventListener("input", () => { speed = +speedIn.value; speedVal.textContent = speed.toFixed(2) + "×"; });
+  document.getElementById("bones").addEventListener("change", e => { showBones = e.target.checked; });
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { paused = true; pauseBtn.textContent = "Play"; }
+
+  // Part table
+  const fmt = v => `${v[0].toFixed(1)}, ${v[1].toFixed(1)}`;
+  const tbody = document.getElementById("parts");
+  for (const p of rig.parts) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${p.name.replace("_", " ")}</td><td class="num">${p.layer}</td>` +
+      `<td>${p.parent || "root"}</td><td class="num">${fmt(p.pivot)}</td>`;
+    tbody.appendChild(tr);
+  }
+})();
+</script>
