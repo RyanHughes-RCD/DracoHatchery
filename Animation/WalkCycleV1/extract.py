@@ -9,7 +9,8 @@
    cyan. The largest connected shape is kept and holes in it are filled
    with dragon-coloured pixels only.
 4. Crop every frame to the same box so the dragon stays put, then write
-   frames/walk_NN.png, a sprite sheet and a looping preview GIF.
+   frames/walk_NN.png, a sprite sheet and a looping preview GIF, plus the
+   same set scaled to GAME_HEIGHT pixels tall in h256/.
 
 Usage: python3 extract.py   (needs ffmpeg on the PATH)
 """
@@ -25,6 +26,7 @@ SOURCE = os.path.join(HERE, "source.mp4")
 FPS = 8
 CYCLE = range(11, 20)  # 0-based frame numbers at 8 fps
 PAD = 8
+GAME_HEIGHT = 256  # height of the game-size copy, in pixels
 
 
 def sample(video, fps, folder):
@@ -71,6 +73,28 @@ def cutout(path):
     return out
 
 
+def write_set(frames, folder):
+    """frames/walk_NN.png, a sprite sheet and a looping preview GIF in folder."""
+    os.makedirs(os.path.join(folder, "frames"), exist_ok=True)
+    for n, c in enumerate(frames):
+        c.save(os.path.join(folder, "frames", f"walk_{n:02d}.png"))
+
+    w, h = frames[0].size
+    sheet = Image.new("RGBA", (w * len(frames), h), (0, 0, 0, 0))
+    for n, c in enumerate(frames):
+        sheet.paste(c, (n * w, 0))
+    sheet.save(os.path.join(folder, "walk_sheet.png"))
+
+    # GIF has no partial transparency, so the preview sits on a plain backdrop.
+    preview = []
+    for c in frames:
+        bg = Image.new("RGBA", c.size, (214, 228, 245, 255))
+        bg.alpha_composite(c)
+        preview.append(bg.convert("RGB"))
+    preview[0].save(os.path.join(folder, "walk_preview.gif"), save_all=True,
+                    append_images=preview[1:], duration=1000 // FPS, loop=0)
+
+
 def main():
     with tempfile.TemporaryDirectory() as tmp:
         frames = sample(SOURCE, FPS, tmp)
@@ -82,26 +106,12 @@ def main():
            max(b[2] for b in boxes) + PAD, max(b[3] for b in boxes) + PAD)
     cut = [c.crop(box) for c in cut]
 
-    out = os.path.join(HERE, "frames")
-    os.makedirs(out, exist_ok=True)
-    for n, c in enumerate(cut):
-        c.save(os.path.join(out, f"walk_{n:02d}.png"))
-
+    write_set(cut, HERE)
+    # Game-size copy: every frame scaled to GAME_HEIGHT pixels tall.
     w, h = cut[0].size
-    sheet = Image.new("RGBA", (w * len(cut), h), (0, 0, 0, 0))
-    for n, c in enumerate(cut):
-        sheet.paste(c, (n * w, 0))
-    sheet.save(os.path.join(HERE, "walk_sheet.png"))
-
-    # GIF has no partial transparency, so the preview sits on a plain backdrop.
-    preview = []
-    for c in cut:
-        bg = Image.new("RGBA", c.size, (214, 228, 245, 255))
-        bg.alpha_composite(c)
-        preview.append(bg.convert("RGB"))
-    preview[0].save(os.path.join(HERE, "walk_preview.gif"), save_all=True,
-                    append_images=preview[1:], duration=1000 // FPS, loop=0)
-    print(f"{len(cut)} frames, {w}x{h} each, crop box {box}")
+    small = [c.resize((round(w * GAME_HEIGHT / h), GAME_HEIGHT), Image.LANCZOS) for c in cut]
+    write_set(small, os.path.join(HERE, f"h{GAME_HEIGHT}"))
+    print(f"{len(cut)} frames, {w}x{h} each (game size {small[0].width}x{GAME_HEIGHT}), crop box {box}")
 
 
 if __name__ == "__main__":
