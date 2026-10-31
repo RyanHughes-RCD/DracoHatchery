@@ -1,0 +1,208 @@
+{
+  "elements": [
+    {
+      "id": "fire",
+      "name": "Fire",
+      "base": true,
+      "ancestry_marking": "ember freckles",
+      "discovery_message": "A flicker of heat licks the air. You have discovered Fire!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "base": true,
+      "ancestry_marking": "ripple bands",
+      "discovery_message": "Cool droplets bead on the shell. You have discovered Water!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "earth",
+      "name": "Earth",
+      "base": true,
+      "ancestry_marking": "pebble speckles",
+      "discovery_message": "The ground hums beneath your feet. You have discovered Earth!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "air",
+      "name": "Air",
+      "base": true,
+      "ancestry_marking": "wisp streaks",
+      "discovery_message": "A breeze stirs from nowhere. You have discovered Air!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "light",
+      "name": "Light",
+      "base": true,
+      "ancestry_marking": "glimmer flecks",
+      "discovery_message": "A soft radiance fills the hatchery. You have discovered Light!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "shadow",
+      "name": "Shadow",
+      "base": true,
+      "ancestry_marking": "dusk smudges",
+      "discovery_message": "The lamps dim for a heartbeat. You have discovered Shadow!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "steam",
+      "name": "Steam",
+      "base": false,
+      "ancestry_marking": "vapor swirls",
+      "discovery_message": "A hiss of scalding vapor rises from the Gene Pool! Fire and Water have joined: you have discovered Steam!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "magma",
+      "name": "Magma",
+      "base": false,
+      "ancestry_marking": "cinder veins",
+      "discovery_message": "The pool glows molten orange and the stones crack! Fire and Earth have fused: you have discovered Magma!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "lightning",
+      "name": "Lightning",
+      "base": false,
+      "ancestry_marking": "zigzag stripes",
+      "discovery_message": "A crack of thunder splits the hatchery! Fire and Air have collided: you have discovered Lightning!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "sun",
+      "name": "Sun",
+      "base": false,
+      "ancestry_marking": "halo rings",
+      "discovery_message": "Blinding gold floods every corner! Fire and Light have merged: you have discovered Sun!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "abyssal",
+      "name": "Abyssal",
+      "base": false,
+      "ancestry_marking": "void spots",
+      "discovery_message": "The pool burns black and bottomless! Fire and Shadow have entwined: you have discovered Abyssal!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "mud",
+      "name": "Mud",
+      "base": false,
+      "ancestry_marking": "clay blotches",
+      "discovery_message": "The pool thickens with a rich, earthy squelch! Water and Earth have mingled: you have discovered Mud!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "mist",
+      "name": "Mist",
+      "base": false,
+      "ancestry_marking": "haze dapples",
+      "discovery_message": "A silver fog rolls out across the floor! Water and Air have blended: you have discovered Mist!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "life",
+      "name": "Life",
+      "base": false,
+      "ancestry_marking": "leaf mottling",
+      "discovery_message": "Green shoots sprout around the pool's edge! Water and Light have bloomed: you have discovered Life!",
+      "palette": {},
+      "signature_decorations": []
+    },
+    {
+      "id": "poison",
+      "name": "Poison",
+      "base": false,
+      "ancestry_marking": "venom spots",
+      "discovery_message": "The pool turns a sickly, shimmering violet! Water and Shadow have curdled: you have discovered Poison!",
+      "palette": {},
+      "signature_decorations": []
+    }
+  ],
+  "recipes": [
+    {
+      "parents": [
+        "fire",
+        "water"
+      ],
+      "result": "steam"
+    },
+    {
+      "parents": [
+        "fire",
+        "earth"
+      ],
+      "result": "magma"
+    },
+    {
+      "parents": [
+        "fire",
+        "air"
+      ],
+      "result": "lightning"
+    },
+    {
+      "parents": [
+        "fire",
+        "light"
+      ],
+      "result": "sun"
+    },
+    {
+      "parents": [
+        "fire",
+        "shadow"
+      ],
+      "result": "abyssal"
+    },
+    {
+      "parents": [
+        "water",
+        "earth"
+      ],
+      "result": "mud"
+    },
+    {
+      "parents": [
+        "water",
+        "air"
+      ],
+      "result": "mist"
+    },
+    {
+      "parents": [
+        "water",
+        "light"
+      ],
+      "result": "life"
+    },
+    {
+      "parents": [
+        "water",
+        "shadow"
+      ],
+      "result": "poison"
+    }
+  ],
+  "_notes": {
+    "signature_decorations": "List of {\"anchor\": ..., \"description\": ...}. Anchors: tail_tip, spine, wing_edge, nostrils, head, belly. Belongs to the element; never inherited.",
+    "palette": "Placeholder for the element's colors; never inherited."
+  }
+}

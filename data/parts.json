@@ -1,0 +1,180 @@
+{
+  "slots": [
+    "head",
+    "neck",
+    "torso",
+    "wings",
+    "tail",
+    "legs"
+  ],
+  "variants": {
+    "head": [
+      {
+        "id": "head_round",
+        "name": "Round",
+        "dominance": "dominant"
+      },
+      {
+        "id": "head_angular",
+        "name": "Angular",
+        "dominance": "dominant"
+      },
+      {
+        "id": "head_snub_nosed",
+        "name": "Snub-nosed",
+        "dominance": "recessive"
+      },
+      {
+        "id": "head_long_snouted",
+        "name": "Long-snouted",
+        "dominance": "recessive"
+      },
+      {
+        "id": "head_third_eyed",
+        "name": "Third-eyed",
+        "dominance": "recessive",
+        "mutation": true
+      }
+    ],
+    "neck": [
+      {
+        "id": "neck_standard",
+        "name": "Standard",
+        "dominance": "dominant"
+      },
+      {
+        "id": "neck_thick",
+        "name": "Thick",
+        "dominance": "dominant"
+      },
+      {
+        "id": "neck_long",
+        "name": "Long",
+        "dominance": "recessive"
+      },
+      {
+        "id": "neck_short",
+        "name": "Short",
+        "dominance": "recessive"
+      },
+      {
+        "id": "neck_spiny",
+        "name": "Spiny",
+        "dominance": "recessive",
+        "mutation": true
+      }
+    ],
+    "torso": [
+      {
+        "id": "torso_lean",
+        "name": "Lean",
+        "dominance": "dominant"
+      },
+      {
+        "id": "torso_stocky",
+        "name": "Stocky",
+        "dominance": "dominant"
+      },
+      {
+        "id": "torso_round",
+        "name": "Round",
+        "dominance": "recessive"
+      },
+      {
+        "id": "torso_long",
+        "name": "Long",
+        "dominance": "recessive"
+      },
+      {
+        "id": "torso_hunched",
+        "name": "Hunched",
+        "dominance": "recessive",
+        "mutation": true
+      }
+    ],
+    "wings": [
+      {
+        "id": "wings_standard",
+        "name": "Standard",
+        "dominance": "dominant"
+      },
+      {
+        "id": "wings_broad",
+        "name": "Broad",
+        "dominance": "dominant"
+      },
+      {
+        "id": "wings_stubby",
+        "name": "Stubby",
+        "dominance": "recessive"
+      },
+      {
+        "id": "wings_narrow",
+        "name": "Narrow",
+        "dominance": "recessive"
+      },
+      {
+        "id": "wings_extra_fingered",
+        "name": "Extra-fingered",
+        "dominance": "recessive",
+        "mutation": true
+      }
+    ],
+    "tail": [
+      {
+        "id": "tail_standard",
+        "name": "Standard",
+        "dominance": "dominant"
+      },
+      {
+        "id": "tail_short",
+        "name": "Short",
+        "dominance": "dominant"
+      },
+      {
+        "id": "tail_long",
+        "name": "Long",
+        "dominance": "recessive"
+      },
+      {
+        "id": "tail_curled",
+        "name": "Curled",
+        "dominance": "recessive"
+      },
+      {
+        "id": "tail_split_tipped",
+        "name": "Split-tipped",
+        "dominance": "recessive",
+        "mutation": true
+      }
+    ],
+    "legs": [
+      {
+        "id": "legs_standard",
+        "name": "Standard",
+        "dominance": "dominant"
+      },
+      {
+        "id": "legs_sturdy",
+        "name": "Sturdy",
+        "dominance": "dominant"
+      },
+      {
+        "id": "legs_long",
+        "name": "Long",
+        "dominance": "recessive"
+      },
+      {
+        "id": "legs_stubby",
+        "name": "Stubby",
+        "dominance": "recessive"
+      },
+      {
+        "id": "legs_backward_jointed",
+        "name": "Backward-jointed",
+        "dominance": "recessive",
+        "mutation": true
+      }
+    ]
+  }
+}
